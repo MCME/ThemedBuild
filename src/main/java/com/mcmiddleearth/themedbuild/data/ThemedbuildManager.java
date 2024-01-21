@@ -1,8 +1,12 @@
 package com.mcmiddleearth.themedbuild.data;
 
-import com.mcmiddleearth.themedbuild.domain.IPlotModel;
+import java.util.List;
 
-public class ThemeManager {
+public class ThemedbuildManager {
+
+    private List<Themedbuild> themedbuilds;
+
+    private boolean liveOrdering;
 
     public static Themedbuild getCurrentThemedbuild() {
         return null;
