@@ -1,8 +1,10 @@
 package com.mcmiddleearth.themedbuild.command.executor;
 
+import com.mcmiddleearth.command.argument.BukkitOfflinePlayerArgument;
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.command.handler.BukkitCommandHandler;
+import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.command.argument.*;
@@ -10,7 +12,7 @@ import com.mojang.brigadier.context.CommandContext;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
-public class ThemeCommandExecutor extends BukkitCommandHandler {
+public class ThemeCommandExecutor extends BukkitCommandHandler implements ICommandExecutor {
 
     public ThemeCommandExecutor(String command) {
         super(command);
@@ -36,11 +38,11 @@ public class ThemeCommandExecutor extends BukkitCommandHandler {
                 .requires(sender -> sender.hasPermission(Permissions.VIEWER.getNode()))
                 .executes(this::executeBaseCommand)
                 .then(HelpfulLiteralBuilder.literal("reload")
-                        .requires(sender -> sender.hasPermission(Permissions.MANAGER.getNode()))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .executes(this::executeReloadCommand)
                 )
                 .then(HelpfulLiteralBuilder.literal("new")
-                        .requires(sender -> sender.hasPermission(Permissions.MANAGER.getNode()))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("model", new ExistingModelNameArgument())
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new AvailableThemedbuildNameArgument())
                                         .executes(context -> executeNewCommand(context, context.getArgument("theme",String.class),
@@ -48,8 +50,49 @@ public class ThemeCommandExecutor extends BukkitCommandHandler {
                                 )
                         )
                 )
+                .then(HelpfulLiteralBuilder.literal("close")
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulLiteralBuilder.literal("building")
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetBuildingCommand(context, context.getArgument("theme",String.class), false))
+                                )
+                        )
+                        .then(HelpfulLiteralBuilder.literal("claiming")
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetClaimingCommand(context, context.getArgument("theme",String.class), false))
+                                )
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("open")
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulLiteralBuilder.literal("building")
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetBuildingCommand(context, context.getArgument("theme",String.class), true))
+                                )
+                        )
+                        .then(HelpfulLiteralBuilder.literal("claiming")
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetClaimingCommand(context, context.getArgument("theme",String.class), true))
+                                )
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("winner")
+                        .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender,Permissions.RATER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("rank", new PositiveNumberArgument())
+                                .executes(context -> executeWinnerCommand(context, context.getArgument("rank",Integer.class)))
+                        )
+                        .then(HelpfulLiteralBuilder.literal("remove")
+                                .executes(this::executeWinnerRemoveCommand)
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("status")
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                .executes(context -> executeStatusCommand(context, context.getArgument("theme",String.class)))
+                        )
+                )
                 .then(HelpfulLiteralBuilder.literal("setURL")
-                        .requires(sender -> sender.hasPermission(Permissions.MANAGER.getNode()))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("url", word())
                                 .executes(context -> executeSetUrlCommand(context, context.getArgument("url",String.class)))
                         )
@@ -62,6 +105,22 @@ public class ThemeCommandExecutor extends BukkitCommandHandler {
         return helpfulLiteralBuilder;
     }
 
+    private int executeSetBuildingCommand(CommandContext<McmeCommandSender> context, String theme, boolean allow) {
+        return 0;
+    }
+
+    private int executeSetClaimingCommand(CommandContext<McmeCommandSender> context, String theme, boolean allow) {
+        return 0;
+    }
+
+    private int executeWinnerCommand(CommandContext<McmeCommandSender> context, int rank) {
+        return 0;
+    }
+
+    private int executeWinnerRemoveCommand(CommandContext<McmeCommandSender> context) {
+        return 0;
+    }
+
     private int executeBaseCommand(CommandContext<McmeCommandSender> context) {
         return 0;
     }
@@ -71,6 +130,10 @@ public class ThemeCommandExecutor extends BukkitCommandHandler {
     }
 
     private int executeNewCommand(CommandContext<McmeCommandSender> context, String theme, String model) {
+        return 0;
+    }
+
+    private int executeStatusCommand(CommandContext<McmeCommandSender> context, String theme) {
         return 0;
     }
 

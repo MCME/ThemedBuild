@@ -30,14 +30,24 @@ permissions:
   themedbuilds.manager:
     default: op
     children:
-      themedbuilds.builder: true
-      themedbuilds.moderator: true
       themedbuilds.viewer: true
   themedbuilds.moderator:
     default: op
     children:
       themedbuilds.viewer: true
+  themedbuilds.rater:
+    default: op
+    children:
+      themedbuilds.viewer: true
   themedbuilds.builder:
     default: op
+    children:
+      themedbuilds.viewer: true
   themedbuilds.viewer:
+    default: op
+  themedbuilds.voter.star:
+    default: op
+    children:
+      themedbuilds.voter: true
+  themedbuilds.voter:
     default: op

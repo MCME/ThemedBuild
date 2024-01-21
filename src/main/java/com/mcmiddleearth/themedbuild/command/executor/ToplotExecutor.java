@@ -6,7 +6,7 @@ import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
 import com.mcmiddleearth.themedbuild.command.argument.OwnedPlotNumberArgument;
-import com.mcmiddleearth.themedbuild.data.ThemeManager;
+import com.mcmiddleearth.themedbuild.data.ThemedbuildManager;
 import com.mcmiddleearth.themedbuild.domain.Plot;
 import com.mojang.brigadier.context.CommandContext;
 
@@ -17,14 +17,14 @@ public class ToplotExecutor implements ISubcommandExecutor {
         helpfulLiteralBuilder
         .then(HelpfulLiteralBuilder.literal("toplot")
                 .requires(sender -> sender instanceof BukkitPlayer)
-                .executes(context -> executeToplotCommand(context, ThemeManager.getCurrentThemedbuild()
+                .executes(context -> executeToplotCommand(context, ThemedbuildManager.getCurrentThemedbuild()
                         .getPlot(getPlayer(context).getUniqueId(),0)))
                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                        .executes(context -> executeToplotCommand(context, ThemeManager
+                        .executes(context -> executeToplotCommand(context, ThemedbuildManager
                                 .getThemedbuild(context.getArgument("theme", String.class))
                                 .getPlot(getPlayer(context).getUniqueId(),0)))
                         .then(HelpfulRequiredArgumentBuilder.argument("number", new OwnedPlotNumberArgument())
-                                .executes(context -> executeToplotCommand(context, ThemeManager
+                                .executes(context -> executeToplotCommand(context, ThemedbuildManager
                                         .getThemedbuild(context.getArgument("theme", String.class))
                                         .getPlot(getPlayer(context).getUniqueId(),
                                                 context.getArgument("number",Integer.class))))
