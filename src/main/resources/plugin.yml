@@ -2,12 +2,13 @@ name: ThemedBuild
 main: com.mcmiddleearth.themedbuild.ThemedBuildPlugin
 version: ${project.version}
 description: ThemedBuild controler
-softdepend: [bukkit]
+softdepend: [FastAsyncWorldEdit]
 depend: [PluginUtils]
-api-version: 1.15
+authors: [Eriol_Eandur, Ivan1pl, aaldim, Donovan]
+api-version: 1.19
 commands:
   theme:
-    description: new plot(s)
+    description: Themed-builds command
     usage: |
       §2/theme§f -- claim a plot in current Themed Build
 
@@ -26,10 +27,17 @@ commands:
       §2/theme listmodels§f -- list available models
       §2/theme setURL <url>§f -- set the URL for the themedbuild
 permissions:
-  plotmanager.create:
+  themedbuilds.manager:
     default: op
     children:
-      plotmanager.build: true
-  plotmanager.build:
-    default: false
-    
+      themedbuilds.builder: true
+      themedbuilds.moderator: true
+      themedbuilds.viewer: true
+  themedbuilds.moderator:
+    default: op
+    children:
+      themedbuilds.viewer: true
+  themedbuilds.builder:
+    default: op
+  themedbuilds.viewer:
+    default: op
