@@ -4,6 +4,7 @@ import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
+import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
 import com.mcmiddleearth.themedbuild.command.argument.OwnedPlotNumberArgument;
 import com.mcmiddleearth.themedbuild.data.ThemedbuildManager;
@@ -16,6 +17,7 @@ public class ToplotExecutor implements ISubcommandExecutor {
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {
         helpfulLiteralBuilder
         .then(HelpfulLiteralBuilder.literal("toplot")
+                .withHelpText(Messages.get("command.toplot.help"))
                 .requires(sender -> sender instanceof BukkitPlayer)
                 .executes(context -> executeToplotCommand(context, ThemedbuildManager.getCurrentThemedbuild()
                         .getPlot(getPlayer(context).getUniqueId(),0)))

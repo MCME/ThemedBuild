@@ -26,4 +26,8 @@ public interface ICommandExecutor {
         return true;
     }
 
+    default String getBaseCommand(CommandContext<McmeCommandSender> context) {
+        return "/"+context.getRootNode().getName();
+    }
+
 }

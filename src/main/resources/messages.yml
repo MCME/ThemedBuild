@@ -1,0 +1,71 @@
+command:
+  help:
+    help: See help about /theme subcommands
+    header: Help for Themed-builds commands
+  model:
+    help: Manage models for Themed-builds plots.
+    save:
+      help: Save a plot model.
+      success: Model saved as %1%.
+      error:
+        noSelection: You need to make a WorldEdit selection first.
+        modelExists: That model already exists. Use '-o' flag to overwrite.
+    delete:
+      help: Delete a plot model.
+      success: Model saved as %1%.
+      error: Model %1%' does not exist.
+    warp:
+      help: Warp to a Themed-build.
+      success: Welcome at model %1%.
+      error: Model %1%' does not exist.
+    test:
+      help: Test a plot model.
+      success: Model %1% placed.
+      error: Model %1%' does not exist.
+    resetplot:
+      help: Reset a model plot.
+      success: Model plot was reset to original state.
+      error: You are not in a model plot.
+    list:
+      help: List all plot models.
+      header:
+    details:
+      help: Display details of a plot model.
+      success:
+        header: 'Details of model %1%:'
+      error: Model %1%' does not exist.
+  resetplot:
+    help: Reset a plot to it's original state.
+  claim:
+    help: Claim a plot.
+  unclaim:
+    help: Unclaim and reset a plot.
+  add:
+    help: Add a helper to a plot.
+  remove:
+    help: Remove a helper from a plot.
+  commit:
+    help: Commit a plot to an new owner.
+  leave:
+    help: Leave the helper team of a plot.
+  theme:
+    help: Themed-builds commands.
+  new:
+    help: Create a new theme.
+  building:
+    help: Allow or deny building in plots of a theme.
+  claiming:
+    help: Allow or deny plot claiming in a theme.
+  winner:
+    help: Select a winning plot of a theme.
+  status:
+    help: Display status (building and claiminig) of a theme.
+  setURL:
+    help: Link a URL with building instructions to a theme.
+  toplot:
+    help: Teleport to a plot.
+  vote:
+    help: Vote for a plot.
+  warp:
+    help: Warp to a theme.
+

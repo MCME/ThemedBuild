@@ -18,6 +18,7 @@
  */
 package com.mcmiddleearth.themedbuild;
 
+import com.mcmiddleearth.pluginutil.message.MessageUtil;
 import com.mcmiddleearth.themedbuild.command.executor.ThemeCommandExecutor;
 import com.mcmiddleearth.themedbuild.domain.*;
 import org.bukkit.ChatColor;
@@ -31,6 +32,9 @@ import java.util.Objects;
  * The type Themed build plugin.
  */
 public class ThemedBuildPlugin extends JavaPlugin {
+
+    public static MessageUtil messageUtil;
+
     public static String prefix = ChatColor.DARK_AQUA + "[" + ChatColor.AQUA + "PlotManager" + ChatColor.DARK_AQUA + "] " + ChatColor.AQUA;
 
     private static ThemedBuildPlugin PluginInstance;
@@ -40,6 +44,8 @@ public class ThemedBuildPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         PluginInstance = this;
+        messageUtil = new MessageUtil();
+        messageUtil.setPluginName("Themedbuilds");
         this.saveDefaultConfig();
         //getCommand("Theme").setExecutor(new Create());
         Objects.requireNonNull(getCommand("theme")).setExecutor(new ThemeCommandExecutor("theme"));
