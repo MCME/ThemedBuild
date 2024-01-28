@@ -6,7 +6,7 @@ import org.bukkit.Location;
 import java.util.List;
 import java.util.UUID;
 
-public class Themedbuild {
+public class ThemedBuild {
 
     private String name;
 

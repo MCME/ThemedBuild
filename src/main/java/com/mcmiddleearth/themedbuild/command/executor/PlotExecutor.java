@@ -8,7 +8,16 @@ import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.command.argument.AddablePlayerArgument;
 import com.mcmiddleearth.themedbuild.command.argument.RemoveablePlayerArgument;
+import com.mcmiddleearth.themedbuild.data.Plot;
+import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class PlotExecutor implements ISubcommandExecutor {
 
@@ -16,7 +25,7 @@ public class PlotExecutor implements ISubcommandExecutor {
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {
         helpfulLiteralBuilder
         .then(HelpfulLiteralBuilder.literal("resetplot")
-                .withHelpText(Messages.get("command.resetplot.help"))
+                .withHelpText(Messages.get("command.resetPlot.help"))
                 .requires(sender -> sender instanceof BukkitPlayer
                                  && hasAnyPermission(sender, Permissions.MODERATOR, Permissions.BUILDER))
                 .executes(this::executeResetPlotCommand)
@@ -61,30 +70,162 @@ public class PlotExecutor implements ISubcommandExecutor {
     }
 
     private int executeResetPlotCommand(CommandContext<McmeCommandSender> context) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            plot.reset();
+            sendSuccess(context, "command.resetPlot.success");
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
     private int executeClaimCommand(CommandContext<McmeCommandSender> context) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(!plot.isClaimed()) {
+                plot.claim(getPlayer(context).getUniqueId());
+                sendSuccess(context, "command.claim.success");
+            } else {
+                sendError(context, "command.claim.errorClaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
     private int executeUnclaimCommand(CommandContext<McmeCommandSender> context) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(plot.isClaimed()) {
+                if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
+                    plot.unclaim();
+                    sendSuccess(context, "command.unclaim.success");
+                } else {
+                    sendError(context, "command.error.notOwned");
+                }
+            } else {
+                sendError(context, "command.error.unclaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
-    private int executeAddCommand(CommandContext<McmeCommandSender> context, String player) {
+    private int executeAddCommand(CommandContext<McmeCommandSender> context, String helperName) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(!plot.isClaimed()) {
+                if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    if(helper == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return 0;
+                    }
+                    if(!plot.getHelper().contains(helper)) {
+                        plot.addHelper(helper);
+                        sendSuccess(context, "command.add.success", helperName);
+                    } else {
+                        sendError(context, "command.add.errorAlreadyHelper", helperName);
+                    }
+                } else {
+                    sendError(context, "command.errorNotOwned");
+                }
+            } else {
+                sendError(context, "command.errorUnclaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
-    private int executeRemoveCommand(CommandContext<McmeCommandSender> context, String player) {
+    private int executeRemoveCommand(CommandContext<McmeCommandSender> context, String helperName) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(!plot.isClaimed()) {
+                if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    if(helper == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return 0;
+                    }
+                    if(plot.getHelper().contains(helper)) {
+                        plot.removeHelper(helper);
+                        sendSuccess(context, "command.remove.success", helperName);
+                    } else {
+                        sendError(context, "command.remove.errorNoHelper", helperName);
+                    }
+                } else {
+                    sendError(context, "command.error.notOwned");
+                }
+            } else {
+                sendError(context, "command.error.unclaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
-    private int executeCommitCommand(CommandContext<McmeCommandSender> context, String player) {
+    private int executeCommitCommand(CommandContext<McmeCommandSender> context, String name) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(!plot.isClaimed()) {
+                if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
+                    UUID newOwner = findPlayerUuid(context, name);
+                    if(newOwner == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return 0;
+                    }
+                    plot.commit(newOwner);
+                    sendSuccess(context, "command.commit.success", name);
+                } else {
+                    sendError(context, "command.error.notOwned");
+                }
+            } else {
+                sendError(context, "command.error.unclaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
     }
 
     private int executeLeaveCommand(CommandContext<McmeCommandSender> context) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        if(plot!=null) {
+            if(!plot.isClaimed()) {
+                if(plot.getHelper().contains(getPlayer(context).getUniqueId())) {
+                    plot.leave(getPlayer(context).getUniqueId());
+                    sendSuccess(context, "command.leave.success");
+                } else {
+                    sendError(context, "command.leave.errorNoHelper");
+                }
+            } else {
+                sendError(context, "command.error.unclaimed");
+            }
+        } else {
+            sendError(context, "command.error.noPlot");
+        }
         return 0;
+    }
+
+    private UUID findPlayerUuid(CommandContext<McmeCommandSender> context, String playerName) {
+        List<? extends OfflinePlayer> matches = Bukkit.matchPlayer(playerName);
+        if(matches.isEmpty()) {
+            matches = Arrays.stream(Bukkit.getOfflinePlayers())
+                    .filter(player -> playerName.equalsIgnoreCase(player.getName())).collect(Collectors.toList());
+        }
+        if(matches.isEmpty()) {
+            sendError(context, "command.error.noPlayer", playerName);
+            return null;
+        } else if(matches.size()>1) {
+            sendError(context, "command.error.ambiguousPlayer", playerName);
+            return null;
+        }
+        return matches.get(0).getUniqueId();
     }
 }

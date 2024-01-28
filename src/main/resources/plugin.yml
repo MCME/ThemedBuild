@@ -3,7 +3,7 @@ main: com.mcmiddleearth.themedbuild.ThemedBuildPlugin
 version: ${project.version}
 description: ThemedBuild controler
 softdepend: [FastAsyncWorldEdit]
-depend: [PluginUtils]
+depend: [PluginUtils,WorldEdit]
 authors: [Eriol_Eandur, Ivan1pl, aaldim, Donovan]
 api-version: 1.19
 commands:

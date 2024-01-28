@@ -82,7 +82,7 @@ public class Create implements CommandExecutor, ConversationAbandonedListener{
                         p.sendMessage(ThemedBuildPlugin.prefix + "Welcome to a new plot, the current theme is " + DBmanager.curr.getTheme());
                         if(!DBmanager.curr.getURL().equals("null"))
                         {
-                            p.sendMessage(ThemedBuildPlugin.prefix + "More information about this Themedbuild:");
+                            p.sendMessage(ThemedBuildPlugin.prefix + "More information about this ThemedBuild:");
                             p.sendMessage(ChatColor.GRAY + DBmanager.curr.getURL());
                         }
                         p.sendMessage(ChatColor.WHITE + "To place lava, left click with " + ChatColor.GREEN + Tool.getLiquidTool());
@@ -99,7 +99,7 @@ public class Create implements CommandExecutor, ConversationAbandonedListener{
                         p.sendMessage(ThemedBuildPlugin.prefix + "Welcome to a new plot, the current theme is " + DBmanager.curr.getTheme());
                         if(!DBmanager.curr.getURL().equals("null"))
                         {
-                            p.sendMessage(ThemedBuildPlugin.prefix + "More information about this Themedbuild:");
+                            p.sendMessage(ThemedBuildPlugin.prefix + "More information about this ThemedBuild:");
                             p.sendMessage(ChatColor.GRAY + DBmanager.curr.getURL());
                         }
                         p.sendMessage(ChatColor.WHITE + "To place lava, left click with " + ChatColor.GREEN + Tool.getLiquidTool());

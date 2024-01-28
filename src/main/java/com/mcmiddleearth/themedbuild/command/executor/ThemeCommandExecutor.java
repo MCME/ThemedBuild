@@ -9,6 +9,7 @@ import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.command.argument.*;
+import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
@@ -57,28 +58,30 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
                 .then(HelpfulLiteralBuilder.literal("building")
                         .withHelpText(Messages.get("command.building.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
-                        .then(HelpfulLiteralBuilder.literal("open")
+                        .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
+                                .executes(context -> {
+                                    assert ThemedBuildManager.getCurrentThemedBuild() != null;
+                                    return executeSetBuildingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                                                     context.getArgument("action", Boolean.class));
+                                })
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                                        .executes(context -> executeSetBuildingCommand(context, context.getArgument("theme",String.class), true))
-                                )
-                        )
-                        .then(HelpfulLiteralBuilder.literal("close")
-                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                                        .executes(context -> executeSetBuildingCommand(context, context.getArgument("theme",String.class), false))
+                                        .executes(context -> executeSetBuildingCommand(context,
+                                                                    context.getArgument("theme",String.class),
+                                                                    context.getArgument("action", Boolean.class)))
                                 )
                         )
                 )
                 .then(HelpfulLiteralBuilder.literal("claiming")
                         .withHelpText(Messages.get("command.claiming.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
-                        .then(HelpfulLiteralBuilder.literal("open")
-                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                                        .executes(context -> executeSetClaimingCommand(context, context.getArgument("theme",String.class), true))
+                        .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
+                                .executes(context -> executeSetClaimingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                            context.getArgument("action", Boolean.class))
                                 )
-                        )
-                        .then(HelpfulLiteralBuilder.literal("close")
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                                        .executes(context -> executeSetClaimingCommand(context, context.getArgument("theme",String.class), false))
+                                        .executes(context -> executeSetClaimingCommand(context,
+                                                context.getArgument("theme",String.class),
+                                                context.getArgument("action", Boolean.class)))
                                 )
                         )
                 )
@@ -95,6 +98,7 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
                 .then(HelpfulLiteralBuilder.literal("status")
                         .withHelpText(Messages.get("command.status.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .executes(context -> executeStatusCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName()))
                         .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                 .executes(context -> executeStatusCommand(context, context.getArgument("theme",String.class)))
                         )
@@ -103,7 +107,12 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
                         .withHelpText(Messages.get("command.setURL.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("url", word())
-                                .executes(context -> executeSetUrlCommand(context, context.getArgument("url",String.class)))
+                                .executes(context -> executeSetUrlCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                                                          context.getArgument("url",String.class)))
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetUrlCommand(context, context.getArgument("theme",String.class),
+                                                                                           context.getArgument("url",String.class)))
+                                )
                         )
                 );
         new HelpExecutor().addCommandTree(helpfulLiteralBuilder);
@@ -114,19 +123,19 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
         return helpfulLiteralBuilder;
     }
 
-    private int executeSetBuildingCommand(CommandContext<McmeCommandSender> context, String theme, boolean allow) {
+    private int executeSetBuildingCommand(CommandContext<McmeCommandSender> context, String themeName, boolean allow) {
         return 0;
     }
 
-    private int executeSetClaimingCommand(CommandContext<McmeCommandSender> context, String theme, boolean allow) {
+    private int executeSetClaimingCommand(CommandContext<McmeCommandSender> context, String themeName, boolean allow) {
         return 0;
     }
 
-    private int executeWinnerCommand(CommandContext<McmeCommandSender> context, int rank) {
+    private int executeWinnerCommand(CommandContext<McmeCommandSender> context, String themeName, int rank) {
         return 0;
     }
 
-    private int executeWinnerRemoveCommand(CommandContext<McmeCommandSender> context) {
+    private int executeWinnerRemoveCommand(CommandContext<McmeCommandSender> context, String themeName, int rank) {
         return 0;
     }
 
@@ -138,15 +147,15 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
         return 0;
     }
 
-    private int executeNewCommand(CommandContext<McmeCommandSender> context, String theme, String model) {
+    private int executeNewCommand(CommandContext<McmeCommandSender> context, String themeName, String model) {
         return 0;
     }
 
-    private int executeStatusCommand(CommandContext<McmeCommandSender> context, String theme) {
+    private int executeStatusCommand(CommandContext<McmeCommandSender> context, String themeName) {
         return 0;
     }
 
-    private int executeSetUrlCommand(CommandContext<McmeCommandSender> context, String url) {
+    private int executeSetUrlCommand(CommandContext<McmeCommandSender> context, String themeName, String url) {
         return 0;
     }
 

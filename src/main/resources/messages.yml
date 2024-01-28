@@ -1,9 +1,16 @@
 command:
+  error:
+    noPlot: You are not in a Themed-build plot.
+    unclaimed: This plot is not claimed.
+    notOwned: You are not owner of this plot.
+    noPlayer: Player %1% not found. For offline players exact name is required.
+    ambiguousPlayer: Player name %1% is ambiguous.
   help:
     help: See help about /theme subcommands
     header: Help for Themed-builds commands
   model:
     help: Manage models for Themed-builds plots.
+    errorNoModel: Model %1%' does not exist.
     save:
       help: Save a plot model.
       success: Model saved as %1%.
@@ -12,41 +19,53 @@ command:
         modelExists: That model already exists. Use '-o' flag to overwrite.
     delete:
       help: Delete a plot model.
-      success: Model saved as %1%.
-      error: Model %1%' does not exist.
+      success: Model %1% deleted.
     warp:
       help: Warp to a Themed-build.
       success: Welcome at model %1%.
-      error: Model %1%' does not exist.
     test:
       help: Test a plot model.
       success: Model %1% placed.
-      error: Model %1%' does not exist.
     resetplot:
       help: Reset a model plot.
       success: Model plot was reset to original state.
       error: You are not in a model plot.
     list:
       help: List all plot models.
-      header:
+      header: 'Available plots (click for details):'
     details:
       help: Display details of a plot model.
-      success:
-        header: 'Details of model %1%:'
-      error: Model %1%' does not exist.
-  resetplot:
+      success: |2-
+        Details of model %1%:
+        Name: %2%
+        Creator: %3%
+        Size: %4% x %5%
+        Height: %6%
+        Description: %7%
+  resetPlot:
+    success: This plot was set back to its original state.
     help: Reset a plot to it's original state.
   claim:
     help: Claim a plot.
+    success: You claimed this plot.
+    errorClaimed: This plot is already claimed.
   unclaim:
+    success: You unclaimed this plot.
     help: Unclaim and reset a plot.
   add:
+    success: You added %1% to this plot team.
+    errorAlreadyHelper: Player %1% is already in this plot team.
     help: Add a helper to a plot.
   remove:
+    success: You removed %1% from this plot team.
     help: Remove a helper from a plot.
+    errorNoHelper: Player %1% is not in this plot team.
   commit:
+    success: You transferred ownership of this plot to %1%.
     help: Commit a plot to an new owner.
   leave:
+    success: You left the team of this plot.
+    error: You are not in this plot team.
     help: Leave the helper team of a plot.
   theme:
     help: Themed-builds commands.
@@ -65,7 +84,14 @@ command:
   toplot:
     help: Teleport to a plot.
   vote:
-    help: Vote for a plot.
+    help: Manage plot votes.
+    add:
+      help: Vote for this plot.
+    diamond:
+      help: Give your diamond to his plot.
+    remove:
+      help: Remove your vote and diamond from this plot.
+
   warp:
     help: Warp to a theme.
 

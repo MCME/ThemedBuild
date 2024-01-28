@@ -1,15 +1,26 @@
 package com.mcmiddleearth.themedbuild.command.executor;
 
+import com.mcmiddleearth.command.argument.PageArgumentType;
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.pluginutil.WEUtil;
+import com.mcmiddleearth.pluginutil.message.FancyMessage;
+import com.mcmiddleearth.pluginutil.message.MessageUtil;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingModelNameArgument;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
+import com.mcmiddleearth.themedbuild.data.Plot;
+import com.mcmiddleearth.themedbuild.data.PlotModel;
+import com.mcmiddleearth.themedbuild.data.PlotModelManager;
 import com.mojang.brigadier.context.CommandContext;
+import com.sk89q.worldedit.regions.Region;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
@@ -63,10 +74,16 @@ public class ModelExecutor implements ISubcommandExecutor {
                 )
                 .then(HelpfulLiteralBuilder.literal("list")
                         .withHelpText(Messages.get("command.model.list.help"))
-                        .executes(this::executeListModelsCommand)
+                        .executes(context -> executeListModelsCommand(context, 1))
+                        .then(HelpfulRequiredArgumentBuilder.argument("page",
+                                        new PageArgumentType(context -> PlotModelManager.getModels().stream()
+                                                .map(PlotModel::getName).collect(Collectors.toList()), MessageUtil.PAGE_LENGTH))
+                                .executes(context -> executeListModelsCommand(context, context.getArgument("page", Integer.class)))
+                        )
                 )
                 .then(HelpfulLiteralBuilder.literal("details")
                         .withHelpText(Messages.get("command.model.details.help"))
+                        .executes(context -> executeModelDetailsCommand(context, ""))
                         .then(HelpfulRequiredArgumentBuilder.argument("model", new ExistingModelNameArgument())
                                 .executes(context -> executeModelDetailsCommand(context, context.getArgument("model",String.class)))
                         )
@@ -77,69 +94,82 @@ public class ModelExecutor implements ISubcommandExecutor {
     private int executeSaveModelCommand(CommandContext<McmeCommandSender> context, String model, String description, boolean overwrite) {
         Region region = WEUtil.getSelection(getPlayer(context));
         if(region != null) {
-            if(!ModelManager.existsModel(model) || overwrite) {
-                ModelManager.addModel(getPlayer(context), region, model, description);
-                ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.save.success", model)).send(getPlayer(context));
+            if(!PlotModelManager.existsModel(model) || overwrite) {
+                PlotModelManager.addModel(getPlayer(context), region, model, description);
+                sendSuccess(context, "command.model.save.success", model);
             } else {
-                ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.save.error.modelExists"));
+                sendError(context, "command.model.save.error.modelExists");
             }
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.save.error.noSelection")).send(getPlayer(context));
+            sendError(context,"command.model.save.error.noSelection");
         }
         return 0;
     }
 
     private int executeDeleteModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(ModelManager.existsModel(model)) {
-            ModelManager.deleteModel(model);
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.delete.success", model)).send(getPlayer(context));
+        if(PlotModelManager.existsModel(model)) {
+            PlotModelManager.deleteModel(model);
+            sendSuccess(context, Messages.get("command.model.delete.success", model));
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.delete.error", model)).send(getPlayer(context));
+            sendError(context, "command.model.errorNoModel", model);
         }
         return 0;
     }
 
     private int executeWarpModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(ModelManager.existsModel(model)) {
-            getPlayer(context).teleport(ModelManager.getPlot(model).getLocation());
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.warp.success", model)).send(getPlayer(context));
+        if(PlotModelManager.existsModel(model)) {
+            getPlayer(context).teleport(Objects.requireNonNull(PlotModelManager.getPlot(model)).getWarpLocation());
+            sendSuccess(context, "command.model.warp.success", model);
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.warp.error", model)).send(getPlayer(context));
+            sendError(context, "command.model.errorNoModel", model);
         }
         return 0;
     }
 
     private int executeTestModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(ModelManager.existsModel(model)) {
-            ModelManager.placeModel(model);
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.test.success", model)).send(getPlayer(context));
+        if(PlotModelManager.existsModel(model)) {
+            //PlotModelManager.placeModel(model, getPlayer(context));
+            sendSuccess(context, "command.model.test.success", model);
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.test.error",model)).send(getPlayer(context));
+            sendError(context, "command.model.errorNoModel",model);
         }
         return 0;
     }
 
     private int executeResetModelPlotCommand(CommandContext<McmeCommandSender> context) {
-        if(ModelManager.inPlot(getPlayer(context))) {
-            ModelManager.resetPlotModel(ModelManager.getPlot(getPlayer(context).getLocation()));
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.reset.success")).send(getPlayer(context));
+        Plot modelPlot = PlotModelManager.getPlot(getPlayer(context).getLocation());
+        if(modelPlot!=null) {
+            modelPlot.reset();
+            sendSuccess(context, "command.model.reset.success");
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.reset.error")).send(getPlayer(context));
+            sendError(context, "command.model.reset.error");
         }
         return 0;
     }
 
-    private int executeListModelsCommand(CommandContext<McmeCommandSender> context) {
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.list.header")).send(getPlayer(context));
+    private int executeListModelsCommand(CommandContext<McmeCommandSender> context, int page) {
+        FancyMessage header = ThemedBuildPlugin.messageUtil.fancyMessage()
+                                                           .addSimple(Messages.get("command.model.list.header"));
+        List<FancyMessage> models = PlotModelManager.getModels().stream()
+                .map(model -> ThemedBuildPlugin.messageUtil.fancyMessage().addClickable(model.getName(),
+                                    context.getRootNode().getName()+"model details "+model.getName())).collect(Collectors.toList());
+        ThemedBuildPlugin.messageUtil.sendFancyListMessage(getPlayer(context), header, models,
+                                    context.getRootNode().getName()+" model list", page);
         return 0;
     }
 
-    private int executeModelDetailsCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(ModelManager.existsModel(model)) {
-
-            ThemedBuildPlugin.messageUtil.fancyMessage().addSimple(Messages.get("command.model.details.success.header", model)).send(getPlayer(context));
+    private int executeModelDetailsCommand(CommandContext<McmeCommandSender> context, String modelName) {
+        PlotModel model = PlotModelManager.getModel(modelName);
+        if(model!=null || PlotModelManager.inPlot(getPlayer(context).getLocation())) {
+            if(model==null) {
+                model = Objects.requireNonNull(PlotModelManager.getPlot(getPlayer(context).getLocation())).getModel();
+            }
+            assert model != null;
+            sendSuccess(context, "command.model.details.success", modelName,model.getCreator(),
+                    ""+model.getSizeX(), ""+model.getSizeZ(), (model.isLimitedHeight()?""+model.getHeight():"unlimited"),
+                    model.getDescription());
         } else {
-            ThemedBuildPlugin.messageUtil.fancyErrorMessage().addSimple(Messages.get("command.model.details.error",model)).send(getPlayer(context));
+            sendError(context, "command.model.errorNoModel",modelName);
         }
         return 0;
     }
