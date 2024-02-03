@@ -13,6 +13,7 @@ import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
@@ -84,15 +85,25 @@ public class PlotExecutor implements ISubcommandExecutor {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
         if(plot!=null) {
             if(!plot.isClaimed()) {
-                plot.claim(getPlayer(context).getUniqueId());
-                sendSuccess(context, "command.claim.success");
+                execClaimPlot(context, plot);
             } else {
                 sendError(context, "command.claim.errorClaimed");
             }
         } else {
-            sendError(context, "command.error.noPlot");
+            plot = ThemedBuildManager.getCurrentThemedBuild().getUnclaimedPlot();
+            execClaimPlot(context, plot);
         }
         return 0;
+    }
+
+    private void execClaimPlot(CommandContext<McmeCommandSender> context, Plot plot) {
+        Player player = getPlayer(context);
+        if(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(pl)) {
+            plot.claim(player.getUniqueId());
+            sendSuccess(context, "command.claim.success");
+        } else {
+            sendError(context, "command.claim.error.tooMany");
+        }
     }
 
     private int executeUnclaimCommand(CommandContext<McmeCommandSender> context) {
@@ -125,10 +136,14 @@ public class PlotExecutor implements ISubcommandExecutor {
                         return 0;
                     }
                     if(!plot.getHelper().contains(helper)) {
-                        plot.addHelper(helper);
-                        sendSuccess(context, "command.add.success", helperName);
+                        if(plot.getThemedbuild().getBuildPlots(helper)<ThemedBuildManager.getMaxBuildPlotsPerTheme(helper)) {
+                            plot.addHelper(helper);
+                            sendSuccess(context, "command.add.success", helperName);
+                        } else {
+                            sendError(context, "command.add.error.toMany", helperName);
+                        }
                     } else {
-                        sendError(context, "command.add.errorAlreadyHelper", helperName);
+                        sendError(context, "command.add.error.alreadyHelper", helperName);
                     }
                 } else {
                     sendError(context, "command.errorNotOwned");

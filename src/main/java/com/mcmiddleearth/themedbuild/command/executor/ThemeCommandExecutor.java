@@ -76,10 +76,24 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
                                 .executes(context -> executeSetClaimingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
-                                            context.getArgument("action", Boolean.class))
+                                        context.getArgument("action", Boolean.class))
                                 )
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                         .executes(context -> executeSetClaimingCommand(context,
+                                                context.getArgument("theme",String.class),
+                                                context.getArgument("action", Boolean.class)))
+                                )
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("helper")
+                        .withHelpText(Messages.get("command.claiming.help"))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
+                                .executes(context -> executeSetHelperCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                        context.getArgument("action", Boolean.class))
+                                )
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetHelperCommand(context,
                                                 context.getArgument("theme",String.class),
                                                 context.getArgument("action", Boolean.class)))
                                 )
@@ -113,6 +127,15 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
                                         .executes(context -> executeSetUrlCommand(context, context.getArgument("theme",String.class),
                                                                                            context.getArgument("url",String.class)))
                                 )
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("info")
+                        .withHelpText(Messages.get("command.info.help"))
+                        .requires(mcmeCommandSender -> hasAnyPermission(sender, Permissions.VIEWER))
+                        .executes(context -> executeInfoCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName()))
+                        .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                .executes(context -> executeInfoCommand(context, context.getArgument("theme",String.class)))
+
                         )
                 );
         new HelpExecutor().addCommandTree(helpfulLiteralBuilder);

@@ -28,6 +28,8 @@ public class Plot  implements IStoragePlot {
 
     private List<UUID> helper;
 
+    private List<UUID> excludedVoters; //A player who was builder in a plot at any time will be permanently excluded from voting.
+
     private SignCorner signCorner;
 
     private Map<UUID,Vote> votes;
@@ -95,6 +97,10 @@ public class Plot  implements IStoragePlot {
     }
 
     public void leave(UUID uniqueId) {
+    }
+
+    public ThemedBuild getThemedbuild() {
+        return themedbuild;
     }
 
     public enum SignCorner {

@@ -48,13 +48,17 @@ command:
   claim:
     help: Claim a plot.
     success: You claimed this plot.
-    errorClaimed: This plot is already claimed.
+      teleport: 'Welcome to your new plot. Please stick to the theme: %1%'
+    errorClaimed: 'This plot is already claimed. Please stick to the theme: %1%'
+    errorTooMany: You already claimed your maximum number of plots in this theme.
   unclaim:
     success: You unclaimed this plot.
     help: Unclaim and reset a plot.
   add:
     success: You added %1% to this plot team.
-    errorAlreadyHelper: Player %1% is already in this plot team.
+    error:
+      alreadyHelper: Player %1% is already in this plot team.
+      tooMany: Player %1% is already builder in his maximum number of plots in this theme.
     help: Add a helper to a plot.
   remove:
     success: You removed %1% from this plot team.
