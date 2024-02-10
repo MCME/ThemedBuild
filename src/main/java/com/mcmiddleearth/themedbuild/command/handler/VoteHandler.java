@@ -1,4 +1,4 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
@@ -9,7 +9,7 @@ import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 
-public class VoteExecutor implements ISubcommandExecutor {
+public class VoteHandler implements ISubcommandHandler {
 
     @Override
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {

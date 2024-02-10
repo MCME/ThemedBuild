@@ -1,4 +1,4 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
 import com.mcmiddleearth.command.argument.PageArgumentType;
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
@@ -16,7 +16,7 @@ import com.mojang.brigadier.tree.CommandNode;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class HelpExecutor implements ISubcommandExecutor {
+public class HelpHandler implements ISubcommandHandler {
 
     @Override
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {

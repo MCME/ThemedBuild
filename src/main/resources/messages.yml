@@ -5,6 +5,7 @@ command:
     notOwned: You are not owner of this plot.
     noPlayer: Player %1% not found. For offline players exact name is required.
     ambiguousPlayer: Player name %1% is ambiguous.
+    noHelper: Player %1% is not in this plot team.
   help:
     help: See help about /theme subcommands
     header: Help for Themed-builds commands
@@ -63,7 +64,14 @@ command:
   remove:
     success: You removed %1% from this plot team.
     help: Remove a helper from a plot.
-    errorNoHelper: Player %1% is not in this plot team.
+  trust:
+    success: You allowed %1% using WorldEdit in this plot.
+    help: Allow a helper to use WorldEdit.
+    errorAlreadyWE: Player %1% already is allowed to use WorldEdit.
+  untrust:
+    success: You denied %1% using WorldEdit in this plot.
+    help: Deny a helper to use WorldEdit.
+    errorNoWE: Player %1% is not a WorldEdit helper.
   commit:
     success: You transferred ownership of this plot to %1%.
     help: Commit a plot to an new owner.

@@ -1,4 +1,4 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
@@ -10,7 +10,7 @@ import com.mcmiddleearth.themedbuild.data.ThemedBuild;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 
-public class WarpExecutor implements ISubcommandExecutor {
+public class WarpHandler implements ISubcommandHandler {
 
 
     @Override

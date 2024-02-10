@@ -1,4 +1,4 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
@@ -12,7 +12,7 @@ import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mcmiddleearth.themedbuild.domain.Plot;
 import com.mojang.brigadier.context.CommandContext;
 
-public class ToplotExecutor implements ISubcommandExecutor {
+public class ToplotHandler implements ISubcommandHandler {
 
     @Override
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {

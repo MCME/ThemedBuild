@@ -1,6 +1,5 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
-import com.mcmiddleearth.command.argument.BukkitOfflinePlayerArgument;
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.command.handler.BukkitCommandHandler;
@@ -14,9 +13,9 @@ import com.mojang.brigadier.context.CommandContext;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
-public class ThemeCommandExecutor extends BukkitCommandHandler implements ICommandExecutor {
+public class ThemeCommandHandler extends BukkitCommandHandler implements ICommandHandler {
 
-    public ThemeCommandExecutor(String command) {
+    public ThemeCommandHandler(String command) {
         super(command);
     }
     /*Available subcommands:
@@ -138,11 +137,11 @@ public class ThemeCommandExecutor extends BukkitCommandHandler implements IComma
 
                         )
                 );
-        new HelpExecutor().addCommandTree(helpfulLiteralBuilder);
-        new ToplotExecutor().addCommandTree(helpfulLiteralBuilder);
-        new WarpExecutor().addCommandTree(helpfulLiteralBuilder);
-        new PlotExecutor().addCommandTree(helpfulLiteralBuilder);
-        new ModelExecutor().addCommandTree(helpfulLiteralBuilder);
+        new HelpHandler().addCommandTree(helpfulLiteralBuilder);
+        new ToplotHandler().addCommandTree(helpfulLiteralBuilder);
+        new WarpHandler().addCommandTree(helpfulLiteralBuilder);
+        new PlotHandler().addCommandTree(helpfulLiteralBuilder);
+        new ModelHandler().addCommandTree(helpfulLiteralBuilder);
         return helpfulLiteralBuilder;
     }
 

@@ -1,4 +1,4 @@
-package com.mcmiddleearth.themedbuild.command.executor;
+package com.mcmiddleearth.themedbuild.command.handler;
 
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
@@ -8,6 +8,7 @@ import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.command.argument.AddablePlayerArgument;
 import com.mcmiddleearth.themedbuild.command.argument.RemoveablePlayerArgument;
+import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
@@ -17,10 +18,11 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class PlotExecutor implements ISubcommandExecutor {
+public class PlotHandler implements ISubcommandHandler {
 
     @Override
     public void addCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {
@@ -54,6 +56,20 @@ public class PlotExecutor implements ISubcommandExecutor {
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
                 .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
                         .executes(context -> executeRemoveCommand(context, context.getArgument("player", String.class)))
+                )
+        )
+        .then(HelpfulLiteralBuilder.literal("trust")
+                .withHelpText(Messages.get("command.trust.help"))
+                .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
+                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                        .executes(context -> executeTrustCommand(context, context.getArgument("player", String.class)))
+                )
+        )
+        .then(HelpfulLiteralBuilder.literal("untrust")
+                .withHelpText(Messages.get("command.untrust.help"))
+                .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
+                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                        .executes(context -> executeUntrustCommand(context, context.getArgument("player", String.class)))
                 )
         )
         .then(HelpfulLiteralBuilder.literal("commit")
@@ -171,7 +187,7 @@ public class PlotExecutor implements ISubcommandExecutor {
                         plot.removeHelper(helper);
                         sendSuccess(context, "command.remove.success", helperName);
                     } else {
-                        sendError(context, "command.remove.errorNoHelper", helperName);
+                        sendError(context, "command.error.noHelper", helperName);
                     }
                 } else {
                     sendError(context, "command.error.notOwned");
@@ -187,7 +203,21 @@ public class PlotExecutor implements ISubcommandExecutor {
 
     private int executeCommitCommand(CommandContext<McmeCommandSender> context, String name) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addCondition(plot!=null, "command.error.unclaimed")
+                .addCondition(!Objects.requireNonNull(plot).isClaimed(), "command.error.notOwned")
+                .addCondition(plot.getOwner().equals(getPlayer(context).getUniqueId()),
+                              "command.leave.errorNoHelper")
+                .execute(()-> {
+                    UUID newOwner = findPlayerUuid(context, name);
+                    if(newOwner == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return;
+                    }
+                    plot.commit(newOwner);
+                    sendSuccess(context, "command.commit.success", name);
+                }, null);
+        /*if(plot!=null) {
             if(!plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
                     UUID newOwner = findPlayerUuid(context, name);
@@ -205,13 +235,19 @@ public class PlotExecutor implements ISubcommandExecutor {
             }
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
         return 0;
     }
 
     private int executeLeaveCommand(CommandContext<McmeCommandSender> context) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addCondition(plot!=null, "command.error.noPlot")
+                .addCondition(!Objects.requireNonNull(plot).isClaimed(), "command.error.unclaimed")
+                .addCondition(plot.getHelper().contains(getPlayer(context).getUniqueId()),
+                              "command.leave.errorNoHelper")
+                .execute(()->plot.leave(getPlayer(context).getUniqueId()), "command.leave.success");
+        /*if(plot!=null) {
             if(!plot.isClaimed()) {
                 if(plot.getHelper().contains(getPlayer(context).getUniqueId())) {
                     plot.leave(getPlayer(context).getUniqueId());
@@ -224,7 +260,7 @@ public class PlotExecutor implements ISubcommandExecutor {
             }
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
         return 0;
     }
 

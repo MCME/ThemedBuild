@@ -19,7 +19,7 @@
 package com.mcmiddleearth.themedbuild;
 
 import com.mcmiddleearth.pluginutil.message.MessageUtil;
-import com.mcmiddleearth.themedbuild.command.executor.ThemeCommandExecutor;
+import com.mcmiddleearth.themedbuild.command.handler.ThemeCommandHandler;
 import com.mcmiddleearth.themedbuild.domain.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -48,7 +48,7 @@ public class ThemedBuildPlugin extends JavaPlugin {
         messageUtil.setPluginName("Themedbuilds");
         this.saveDefaultConfig();
         //getCommand("Theme").setExecutor(new Create());
-        Objects.requireNonNull(getCommand("theme")).setExecutor(new ThemeCommandExecutor("theme"));
+        Objects.requireNonNull(getCommand("theme")).setExecutor(new ThemeCommandHandler("theme"));
         getServer().getPluginManager().registerEvents(new Tool(), this);
         getServer().getPluginManager().registerEvents(new Protection(), this);
         getServer().getPluginManager().registerEvents(new DBmanager(), this);
