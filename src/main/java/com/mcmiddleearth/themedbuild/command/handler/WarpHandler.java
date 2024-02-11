@@ -6,9 +6,11 @@ import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
+import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
 import com.mcmiddleearth.themedbuild.data.ThemedBuild;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
+import org.bukkit.entity.Player;
 
 public class WarpHandler implements ISubcommandHandler {
 
@@ -28,12 +30,16 @@ public class WarpHandler implements ISubcommandHandler {
 
     private int executeWarpCommand(CommandContext<McmeCommandSender> context, String theme) {
         ThemedBuild themedBuild = ThemedBuildManager.getThemedBuild(theme);
-        if(themedBuild != null) {
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addThemeCondition(themedBuild, theme)
+                .execute(()->player.teleport(themedBuild.getWarpLocation()), "command.warp.success");
+        /*if(themedBuild != null) {
             getPlayer(context).teleport(themedBuild.getWarpLocation());
             sendSuccess(context, "command.warp.success");
         } else {
             sendError(context, "command.warp.error",theme);
-        }
+        }*/
         return 0;
     }
 

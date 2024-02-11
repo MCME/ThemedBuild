@@ -12,6 +12,7 @@ import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingModelNameArgument;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
+import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.PlotModel;
 import com.mcmiddleearth.themedbuild.data.PlotModelManager;
@@ -93,7 +94,12 @@ public class ModelHandler implements ISubcommandHandler {
 
     private int executeSaveModelCommand(CommandContext<McmeCommandSender> context, String model, String description, boolean overwrite) {
         Region region = WEUtil.getSelection(getPlayer(context));
-        if(region != null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addCondition(region!=null, "command.model.save.error.noSelection")
+                .addCondition(!PlotModelManager.existsModel(model) || overwrite, "command.model.save.error.modelExists")
+                .execute(()->PlotModelManager.addModel(getPlayer(context), region, model, description),
+                                           "command.model.save.success", model);
+        /*if(region != null) {
             if(!PlotModelManager.existsModel(model) || overwrite) {
                 PlotModelManager.addModel(getPlayer(context), region, model, description);
                 sendSuccess(context, "command.model.save.success", model);
@@ -102,48 +108,63 @@ public class ModelHandler implements ISubcommandHandler {
             }
         } else {
             sendError(context,"command.model.save.error.noSelection");
-        }
+        }*/
         return 0;
     }
 
     private int executeDeleteModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(PlotModelManager.existsModel(model)) {
+        new ConditionalExecutor(getPlayer(context))
+            .addModelCondition(model)
+            .execute(()->PlotModelManager.deleteModel(model),"command.model.delete.success", model);
+        /*if(PlotModelManager.existsModel(model)) {
             PlotModelManager.deleteModel(model);
             sendSuccess(context, Messages.get("command.model.delete.success", model));
         } else {
             sendError(context, "command.model.errorNoModel", model);
-        }
+        }*/
         return 0;
     }
 
     private int executeWarpModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(PlotModelManager.existsModel(model)) {
+        new ConditionalExecutor(getPlayer(context))
+                .addModelCondition(model)
+                .execute(()->getPlayer(context).teleport(Objects.requireNonNull(PlotModelManager.getPlot(model)).getWarpLocation()),
+                        "command.model.warp.success", model);
+        /*if(PlotModelManager.existsModel(model)) {
             getPlayer(context).teleport(Objects.requireNonNull(PlotModelManager.getPlot(model)).getWarpLocation());
             sendSuccess(context, "command.model.warp.success", model);
         } else {
             sendError(context, "command.model.errorNoModel", model);
-        }
+        }*/
         return 0;
     }
 
     private int executeTestModelCommand(CommandContext<McmeCommandSender> context, String model) {
-        if(PlotModelManager.existsModel(model)) {
-            //PlotModelManager.placeModel(model, getPlayer(context));
+        new ConditionalExecutor(getPlayer(context))
+                .addModelCondition(model)
+                .execute(()->PlotModelManager.placeModel(model, getPlayer(context)),
+                        "command.model.test.success", model);
+        /*if(PlotModelManager.existsModel(model)) {
+            PlotModelManager.placeModel(model, getPlayer(context));
             sendSuccess(context, "command.model.test.success", model);
         } else {
             sendError(context, "command.model.errorNoModel",model);
-        }
+        }*/
         return 0;
     }
 
     private int executeResetModelPlotCommand(CommandContext<McmeCommandSender> context) {
         Plot modelPlot = PlotModelManager.getPlot(getPlayer(context).getLocation());
-        if(modelPlot!=null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addCondition(modelPlot!=null, "command.model.reset.error")
+                .execute(()-> Objects.requireNonNull(modelPlot).reset(),
+                        "command.model.test.success");
+        /*if(modelPlot!=null) {
             modelPlot.reset();
             sendSuccess(context, "command.model.reset.success");
         } else {
             sendError(context, "command.model.reset.error");
-        }
+        }*/
         return 0;
     }
 

@@ -88,43 +88,58 @@ public class PlotHandler implements ISubcommandHandler {
 
     private int executeResetPlotCommand(CommandContext<McmeCommandSender> context) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .execute(Objects.requireNonNull(plot)::reset,"command.resetPlot.success");
+        /*if(plot!=null) {
             plot.reset();
             sendSuccess(context, "command.resetPlot.success");
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
         return 0;
     }
 
     private int executeClaimCommand(CommandContext<McmeCommandSender> context) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
         if(plot!=null) {
-            if(!plot.isClaimed()) {
+            new ConditionalExecutor(getPlayer(context))
+                    .addCondition(!plot.isClaimed(),"command.claim.errorClaimed")
+                    .execute(()->execClaimPlot(context, plot), null);
+            /*if(!plot.isClaimed()) {
                 execClaimPlot(context, plot);
             } else {
                 sendError(context, "command.claim.errorClaimed");
-            }
+            }*/
         } else {
-            plot = ThemedBuildManager.getCurrentThemedBuild().getUnclaimedPlot();
-            execClaimPlot(context, plot);
+            Plot unclaimedPlot = ThemedBuildManager.getCurrentThemedBuild().getUnclaimedPlot();
+            execClaimPlot(context, unclaimedPlot);
         }
         return 0;
     }
 
     private void execClaimPlot(CommandContext<McmeCommandSender> context, Plot plot) {
         Player player = getPlayer(context);
-        if(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(pl)) {
+        new ConditionalExecutor(player)
+                .addCondition(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(player),
+                        "command.claim.error.tooMany")
+                .execute(()->plot.claim(player.getUniqueId()),"command.claim.success");
+        /*if(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(player)) {
             plot.claim(player.getUniqueId());
             sendSuccess(context, "command.claim.success");
         } else {
             sendError(context, "command.claim.error.tooMany");
-        }
+        }*/
     }
 
     private int executeUnclaimCommand(CommandContext<McmeCommandSender> context) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .addPlotOwnedCondition(plot, getPlayer(context).getUniqueId())
+                .execute(plot::unclaim, "command.unclaim.success");
+        /*if(plot!=null) {
             if(plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
                     plot.unclaim();
@@ -137,21 +152,49 @@ public class PlotHandler implements ISubcommandHandler {
             }
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
         return 0;
     }
 
     private int executeAddCommand(CommandContext<McmeCommandSender> context, String helperName) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
-            if(!plot.isClaimed()) {
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .addPlotOwnedCondition(plot,getPlayer(context).getUniqueId())
+                .execute(()-> {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    String exactHelperName = (helper!=null?Bukkit.getOfflinePlayer(helper).getName():"*unknown*");
+                    new ConditionalExecutor(getPlayer(context))
+                            .addPlayerCondition(helper)
+                            .addCondition(!plot.getHelper().contains(helper),"command.add.error.alreadyHelper", exactHelperName)
+                            .addCondition(plot.getThemedbuild().getBuildPlots(helper)<ThemedBuildManager.getMaxBuildPlotsPerTheme(helper),
+                                            "command.add.error.toMany", exactHelperName)
+                            .execute(()-> plot.addHelper(helper),"command.add.success", exactHelperName);
+                    /*if(helper == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return 0;
+                    }
+                    if(!plot.getHelper().contains(helper)) {
+                        if(plot.getThemedbuild().getBuildPlots(helper)<ThemedBuildManager.getMaxBuildPlotsPerTheme(helper)) {
+                            plot.addHelper(helper);
+                            sendSuccess(context, "command.add.success", helperName);
+                        } else {
+                            sendError(context, "command.add.error.toMany", helperName);
+                        }
+                    } else {
+                        sendError(context, "command.add.error.alreadyHelper", helperName);
+                    }*/
+                }, null);
+        /*if(plot!=null) {
+            if(plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
                     UUID helper = findPlayerUuid(context, helperName);
                     if(helper == null) {
                         //Error message is already sent by method findPlayerUuid!
                         return 0;
                     }
-                    if(!plot.getHelper().contains(helper)) {
+                    if(plot.getHelper().contains(helper)) {
                         if(plot.getThemedbuild().getBuildPlots(helper)<ThemedBuildManager.getMaxBuildPlotsPerTheme(helper)) {
                             plot.addHelper(helper);
                             sendSuccess(context, "command.add.success", helperName);
@@ -169,14 +212,36 @@ public class PlotHandler implements ISubcommandHandler {
             }
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
         return 0;
     }
 
     private int executeRemoveCommand(CommandContext<McmeCommandSender> context, String helperName) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
-        if(plot!=null) {
-            if(!plot.isClaimed()) {
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .addPlotOwnedCondition(plot,getPlayer(context).getUniqueId())
+                .execute(()-> {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    String exactHelperName = (helper!=null?Bukkit.getOfflinePlayer(helper).getName():"*unknown*");
+                    new ConditionalExecutor(getPlayer(context))
+                            .addPlayerCondition(helper)
+                            .addPlotHelperCondition(plot, helper, exactHelperName)
+                            .execute(()->plot.removeHelper(helper), "command.remove.success", exactHelperName);
+                    /*if(helper == null) {
+                        //Error message is already sent by method findPlayerUuid!
+                        return;
+                    }
+                    if(plot.getHelper().contains(helper)) {
+                        plot.removeHelper(helper);
+                        sendSuccess(context, "command.remove.success", exactHelperName);
+                    } else {
+                        sendError(context, "command.error.noHelper", exactHelperName);
+                    }*/
+                }, null);
+        /*if(plot!=null) {
+            if(plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
                     UUID helper = findPlayerUuid(context, helperName);
                     if(helper == null) {
@@ -197,28 +262,68 @@ public class PlotHandler implements ISubcommandHandler {
             }
         } else {
             sendError(context, "command.error.noPlot");
-        }
+        }*/
+        return 0;
+    }
+
+    private int executeTrustCommand(CommandContext<McmeCommandSender> context, String helperName) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .execute(() -> {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    String exactHelperName = (helper!=null?Bukkit.getOfflinePlayer(helper).getName():"*unknown*");
+                    new ConditionalExecutor(getPlayer(context))
+                            .addPlayerCondition(helper)
+                            .addPlotHelperCondition(plot, helper, exactHelperName)
+                            .addCondition(!plot.getWeHelpers().contains(helper), "command.trust.errorAlreadyWE")
+                            .execute(() -> plot.trustHelper(helper), "command.trust.success", exactHelperName);
+
+                }, null);
+        return 0;
+    }
+
+    private int executeUntrustCommand(CommandContext<McmeCommandSender> context, String helperName) {
+        Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
+        new ConditionalExecutor(getPlayer(context))
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .execute(() -> {
+                    UUID helper = findPlayerUuid(context, helperName);
+                    String exactHelperName = (helper!=null?Bukkit.getOfflinePlayer(helper).getName():"*unknown*");
+                    new ConditionalExecutor(getPlayer(context))
+                            .addPlayerCondition(helper)
+                            .addCondition(plot.getWeHelpers().contains(helper), "command.trust.errorNoWE")
+                            .execute(() -> plot.untrustHelper(helper), "command.untrust.success", exactHelperName);
+
+                }, null);
         return 0;
     }
 
     private int executeCommitCommand(CommandContext<McmeCommandSender> context, String name) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
         new ConditionalExecutor(getPlayer(context))
-                .addCondition(plot!=null, "command.error.unclaimed")
-                .addCondition(!Objects.requireNonNull(plot).isClaimed(), "command.error.notOwned")
-                .addCondition(plot.getOwner().equals(getPlayer(context).getUniqueId()),
-                              "command.leave.errorNoHelper")
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .addPlotOwnedCondition(plot, getPlayer(context).getUniqueId())
                 .execute(()-> {
                     UUID newOwner = findPlayerUuid(context, name);
-                    if(newOwner == null) {
+                    String exactName = (newOwner!=null?Bukkit.getOfflinePlayer(newOwner).getName():"*unknown*");
+                    new ConditionalExecutor(getPlayer(context))
+                            .addPlayerCondition(newOwner)
+                            .addCondition(plot.getThemedbuild().getOwnedPlots(newOwner)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(newOwner),
+                                    "command.commit.error.tooMany", exactName)
+                            .execute(()-> plot.commit(newOwner),"command.commit.success", exactName);
+                    /*if(newOwner == null) {
                         //Error message is already sent by method findPlayerUuid!
                         return;
                     }
                     plot.commit(newOwner);
-                    sendSuccess(context, "command.commit.success", name);
+                    sendSuccess(context, "command.commit.success", name);*/
                 }, null);
         /*if(plot!=null) {
-            if(!plot.isClaimed()) {
+            if(plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
                     UUID newOwner = findPlayerUuid(context, name);
                     if(newOwner == null) {
@@ -242,13 +347,12 @@ public class PlotHandler implements ISubcommandHandler {
     private int executeLeaveCommand(CommandContext<McmeCommandSender> context) {
         Plot plot = ThemedBuildManager.getPlot(getPlayer(context).getLocation());
         new ConditionalExecutor(getPlayer(context))
-                .addCondition(plot!=null, "command.error.noPlot")
-                .addCondition(!Objects.requireNonNull(plot).isClaimed(), "command.error.unclaimed")
-                .addCondition(plot.getHelper().contains(getPlayer(context).getUniqueId()),
-                              "command.leave.errorNoHelper")
+                .addPlotCondition(plot)
+                .addPlotClaimedCondition(Objects.requireNonNull(plot))
+                .addCondition(plot.getHelper().contains(getPlayer(context).getUniqueId()), "command.leave.errorNoHelper")
                 .execute(()->plot.leave(getPlayer(context).getUniqueId()), "command.leave.success");
         /*if(plot!=null) {
-            if(!plot.isClaimed()) {
+            if(plot.isClaimed()) {
                 if(plot.getHelper().contains(getPlayer(context).getUniqueId())) {
                     plot.leave(getPlayer(context).getUniqueId());
                     sendSuccess(context, "command.leave.success");

@@ -6,12 +6,13 @@ command:
     noPlayer: Player %1% not found. For offline players exact name is required.
     ambiguousPlayer: Player name %1% is ambiguous.
     noHelper: Player %1% is not in this plot team.
+    noTheme: There is no Themed-build named %1%
   help:
     help: See help about /theme subcommands
     header: Help for Themed-builds commands
   model:
     help: Manage models for Themed-builds plots.
-    errorNoModel: Model %1%' does not exist.
+    errorNoModel: Model %1% does not exist.
     save:
       help: Save a plot model.
       success: Model saved as %1%.
@@ -74,10 +75,11 @@ command:
     errorNoWE: Player %1% is not a WorldEdit helper.
   commit:
     success: You transferred ownership of this plot to %1%.
+    errorTooMany: %1% already reached their maximum number of plots.
     help: Commit a plot to an new owner.
   leave:
     success: You left the team of this plot.
-    error: You are not in this plot team.
+    errorNoHelper: You are not in this plot team.
     help: Leave the helper team of a plot.
   theme:
     help: Themed-builds commands.
@@ -95,6 +97,8 @@ command:
     help: Link a URL with building instructions to a theme.
   toplot:
     help: Teleport to a plot.
+    success:
+    errorNoPlot:
   vote:
     help: Manage plot votes.
     add:
