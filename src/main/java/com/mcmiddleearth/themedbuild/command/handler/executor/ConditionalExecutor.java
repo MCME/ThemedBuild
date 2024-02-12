@@ -5,7 +5,6 @@ import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.PlotModelManager;
 import com.mcmiddleearth.themedbuild.data.ThemedBuild;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.util.LinkedList;
@@ -44,7 +43,7 @@ public class ConditionalExecutor {
     }
 
     public ConditionalExecutor addPlotHelperCondition(Plot plot, UUID helperUuid, String helperName) {
-        conditions.add(new Condition(plot.getHelper().contains(helperUuid), "command.error.noHelper", helperName));
+        conditions.add(new Condition(plot.getHelpers().contains(helperUuid), "command.error.noHelper", helperName));
         return this;
     }
 
@@ -55,7 +54,7 @@ public class ConditionalExecutor {
     }
 
     public ConditionalExecutor addModelCondition(String modelName) {
-        conditions.add(new Condition(PlotModelManager.existsModel(modelName), "command.model.errorNoModel"));
+        conditions.add(new Condition(PlotModelManager.existsModel(modelName), "command.error.noModel"));
         return this;
     }
 

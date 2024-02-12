@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class Plot  implements IStoragePlot {
 
-    @Nullable private ThemedBuild themedbuild; //null for model demo plots
+    private ThemedBuild themedBuild; //null for model demo plots
 
     private PlotModel model; //required for model demo plots
 
@@ -79,7 +79,7 @@ public class Plot  implements IStoragePlot {
     public void unclaim() {
     }
 
-    public Collection<UUID> getHelper() {
+    public Collection<UUID> getHelpers() {
         return null;
     }
 
@@ -98,8 +98,40 @@ public class Plot  implements IStoragePlot {
     public void leave(UUID uniqueId) {
     }
 
-    public ThemedBuild getThemedbuild() {
-        return themedbuild;
+    public ThemedBuild getThemedBuild() {
+        return themedBuild;
+    }
+
+    public Collection<UUID> getWeHelpers() {
+        return null;
+    }
+
+    public void trustHelper(UUID helper) {
+
+    }
+
+    public void untrustHelper(UUID helper) {
+
+    }
+
+    public boolean hasVoted(UUID uniqueId) {
+        return false;
+    }
+
+    public void addVote(UUID uniqueId, int voteFactor) {
+
+    }
+
+    public boolean hasDiamond(UUID uniqueId) {
+        return false;
+    }
+
+    public void addDiamond(UUID uniqueId, int voteFactor) {
+
+    }
+
+    public void removeVote(UUID uniqueId) {
+
     }
 
     public enum SignCorner {

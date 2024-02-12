@@ -12,6 +12,8 @@ import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.entity.Player;
 
+import java.util.Objects;
+
 public class WarpHandler implements ISubcommandHandler {
 
 
@@ -21,7 +23,7 @@ public class WarpHandler implements ISubcommandHandler {
         .then(HelpfulLiteralBuilder.literal("warp")
                 .withHelpText(Messages.get("command.warp.help"))
                 .requires(sender -> sender instanceof BukkitPlayer)
-                .executes(context -> executeWarpCommand(context, ThemedBuildManager.getCurrentThemedbuild().getName()))
+                .executes(context -> executeWarpCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName()))
                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                         .executes(context -> executeWarpCommand(context, context.getArgument("theme",String.class)))
                 )
@@ -33,7 +35,8 @@ public class WarpHandler implements ISubcommandHandler {
         Player player = getPlayer(context);
         new ConditionalExecutor(player)
                 .addThemeCondition(themedBuild, theme)
-                .execute(()->player.teleport(themedBuild.getWarpLocation()), "command.warp.success");
+                .execute(()->player.teleport(Objects.requireNonNull(themedBuild).getWarpLocation()),
+                                             "command.warp.success");
         /*if(themedBuild != null) {
             getPlayer(context).teleport(themedBuild.getWarpLocation());
             sendSuccess(context, "command.warp.success");

@@ -4,11 +4,8 @@ import com.sk89q.worldedit.regions.Region;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nonnull;
-import java.awt.*;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
 
 public class PlotModelManager {
 
@@ -42,5 +39,9 @@ public class PlotModelManager {
 
     public static Collection<PlotModel> getModels() {
         return new HashSet<PlotModel>();
+    }
+
+    public static void placeModel(String modelName, Player player) {
+
     }
 }

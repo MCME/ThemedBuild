@@ -8,6 +8,7 @@ public enum Permissions {
     VOTER       ("themedbuilds.voter"),
     RATER       ("themedbuilds.rater"),
     STAR_VOTER  ("themedbuilds.voter.star"),
+    POWER_VOTER ("themedbuilds.voter.power"),
     BUILDER     ("themedbuilds.builder");
 
     private final String permissionNode;

@@ -23,6 +23,8 @@ import com.mcmiddleearth.themedbuild.command.handler.ThemeCommandHandler;
 import com.mcmiddleearth.themedbuild.domain.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -37,13 +39,13 @@ public class ThemedBuildPlugin extends JavaPlugin {
 
     public static String prefix = ChatColor.DARK_AQUA + "[" + ChatColor.AQUA + "PlotManager" + ChatColor.DARK_AQUA + "] " + ChatColor.AQUA;
 
-    private static ThemedBuildPlugin PluginInstance;
+    private static ThemedBuildPlugin pluginInstance;
 
     private static LoadScheduler scheduler;
 
     @Override
     public void onEnable() {
-        PluginInstance = this;
+        pluginInstance = this;
         messageUtil = new MessageUtil();
         messageUtil.setPluginName("Themedbuilds");
         this.saveDefaultConfig();
@@ -57,6 +59,10 @@ public class ThemedBuildPlugin extends JavaPlugin {
         getLogger().info("Enabled!");
     }
 
+    public void reload() {
+        reloadConfig();
+    }
+
     @Override
     public void onDisable() {
         DBmanager.save();
@@ -67,6 +73,7 @@ public class ThemedBuildPlugin extends JavaPlugin {
     }
 
     public static ThemedBuildPlugin getPluginInstance() {
-        return PluginInstance;
+        return pluginInstance;
     }
+
 }

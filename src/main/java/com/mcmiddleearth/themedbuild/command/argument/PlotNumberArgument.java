@@ -4,7 +4,7 @@ import com.mcmiddleearth.command.argument.AbstractIntegerSuggestionListArgumentT
 
 import java.util.Collection;
 
-public class OwnedPlotNumberArgument extends AbstractIntegerSuggestionListArgumentType {
+public class PlotNumberArgument extends AbstractIntegerSuggestionListArgumentType {
 
     @Override
     protected Collection<String> getSuggestions() {

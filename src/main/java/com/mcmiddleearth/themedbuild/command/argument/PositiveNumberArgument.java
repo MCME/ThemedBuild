@@ -1,29 +1,47 @@
 package com.mcmiddleearth.themedbuild.command.argument;
 
+import com.mcmiddleearth.command.argument.AbstractIntegerSuggestionListArgumentType;
+import com.mojang.brigadier.LiteralMessage;
 import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
+import java.util.LinkedList;
+import java.util.List;
 
-public class PositiveNumberArgument implements ArgumentType<Integer> {
+public class PositiveNumberArgument extends AbstractIntegerSuggestionListArgumentType {
 
-    @Override
-    public Integer parse(StringReader reader) throws CommandSyntaxException {
-        return null;
+    public PositiveNumberArgument() {
+        setTooltip("Any positive number.");
     }
 
     @Override
-    public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        return ArgumentType.super.listSuggestions(context, builder);
+    public Integer parse(StringReader reader) throws CommandSyntaxException {
+        String o = reader.readUnquotedString();
+        try {
+            int page = Integer.parseInt(o);
+            if(page>0) {
+                return page;
+            }
+        } catch(NumberFormatException ignore){}
+        throw new CommandSyntaxException(new SimpleCommandExceptionType(new LiteralMessage("Failed parsing of positive number argument")),
+                new LiteralMessage("value must be an integer > 0"));
     }
 
     @Override
     public Collection<String> getExamples() {
-        return ArgumentType.super.getExamples();
+        return Arrays.asList("1","2","3");
     }
+
+    @Override
+    protected Collection<String> getSuggestions() {
+        List<String> suggestions = new LinkedList<>();
+        for(int i = 0; i < 100; i++) {
+            suggestions.add(""+i);
+        }
+        return suggestions;
+    }
+
 }

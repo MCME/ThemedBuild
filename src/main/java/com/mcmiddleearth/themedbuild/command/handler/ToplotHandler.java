@@ -6,13 +6,15 @@ import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
-import com.mcmiddleearth.themedbuild.command.argument.OwnedPlotNumberArgument;
+import com.mcmiddleearth.themedbuild.command.argument.PlotNumberArgument;
 import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
+import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.ThemedBuild;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
-import com.mcmiddleearth.themedbuild.domain.Plot;
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.entity.Player;
+
+import java.util.Objects;
 
 public class ToplotHandler implements ISubcommandHandler {
 
@@ -23,11 +25,11 @@ public class ToplotHandler implements ISubcommandHandler {
                 .withHelpText(Messages.get("command.toplot.help"))
                 .requires(sender -> sender instanceof BukkitPlayer)
                 .executes(context -> executeToplotCommand(context,
-                                                    ThemedBuildManager.getCurrentThemedbuild().getName(),0))
+                                                    ThemedBuildManager.getCurrentThemedBuild().getName(),0))
                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                         .executes(context -> executeToplotCommand(context,
                                                     context.getArgument("theme", String.class),0))
-                        .then(HelpfulRequiredArgumentBuilder.argument("number", new OwnedPlotNumberArgument())
+                        .then(HelpfulRequiredArgumentBuilder.argument("number", new PlotNumberArgument())
                                 .executes(context -> executeToplotCommand(context,
                                                     context.getArgument("theme", String.class),
                                                     context.getArgument("number",Integer.class)))
@@ -46,8 +48,8 @@ public class ToplotHandler implements ISubcommandHandler {
                     Plot plot = theme.getPlot(player.getUniqueId(),plotNummer);
                     new ConditionalExecutor(player)
                             .addCondition(plot!=null, "command.toPlot.errorNoPlot", ""+plotNummer, themeName)
-                            .execute(()->player.teleport(plot.getWarpLocation()),"command.toPlot.success",
-                                            ""+plotNummer, themeName, plot.getOwner());
+                            .execute(()->player.teleport(Objects.requireNonNull(plot).getWarpLocation()),"command.toPlot.success",
+                                            ""+plotNummer, themeName);
                     /*if(plot != null) {
                         getPlayer(context).teleport(plot.getWarpLocation());
                         sendSuccess(context, "command.toPlot.success", ""+plotNummer, themeName, plot.getOwner());

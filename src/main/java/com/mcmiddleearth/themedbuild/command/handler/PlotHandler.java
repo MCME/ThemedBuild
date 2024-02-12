@@ -6,8 +6,8 @@ import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
-import com.mcmiddleearth.themedbuild.command.argument.AddablePlayerArgument;
-import com.mcmiddleearth.themedbuild.command.argument.RemoveablePlayerArgument;
+import com.mcmiddleearth.themedbuild.ThemedBuildConfig;
+import com.mcmiddleearth.themedbuild.command.argument.PlotPlayerArgument;
 import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
@@ -47,35 +47,42 @@ public class PlotHandler implements ISubcommandHandler {
         .then(HelpfulLiteralBuilder.literal("add")
                 .withHelpText(Messages.get("command.add.help"))
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new AddablePlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player",
+                                    new PlotPlayerArgument((uuid,plot) -> !plot.getHelpers().contains(uuid)
+                                                                        &&!plot.getOwner().equals(uuid)))
                         .executes(context -> executeAddCommand(context, context.getArgument("player", String.class)))
                 )
         )
         .then(HelpfulLiteralBuilder.literal("remove")
                 .withHelpText(Messages.get("command.remove.help"))
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player",
+                                    new PlotPlayerArgument((uuid,plot)->plot.getHelpers().contains(uuid)))
                         .executes(context -> executeRemoveCommand(context, context.getArgument("player", String.class)))
                 )
         )
         .then(HelpfulLiteralBuilder.literal("trust")
                 .withHelpText(Messages.get("command.trust.help"))
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player",
+                                    new PlotPlayerArgument((uuid,plot) -> plot.getHelpers().contains(uuid)
+                                                                      && !plot.getWeHelpers().contains(uuid)))
                         .executes(context -> executeTrustCommand(context, context.getArgument("player", String.class)))
                 )
         )
         .then(HelpfulLiteralBuilder.literal("untrust")
                 .withHelpText(Messages.get("command.untrust.help"))
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player",
+                                    new PlotPlayerArgument((uuid,plot)->plot.getWeHelpers().contains(uuid)))
                         .executes(context -> executeUntrustCommand(context, context.getArgument("player", String.class)))
                 )
         )
         .then(HelpfulLiteralBuilder.literal("commit")
                 .withHelpText(Messages.get("command.commit.help"))
                 .requires(sender -> sender instanceof BukkitPlayer && hasAnyPermission(sender, Permissions.BUILDER))
-                .then(HelpfulRequiredArgumentBuilder.argument("player", new RemoveablePlayerArgument())
+                .then(HelpfulRequiredArgumentBuilder.argument("player",
+                                    new PlotPlayerArgument((uuid,plot)->!plot.getOwner().equals(uuid)))
                         .executes(context -> executeCommitCommand(context, context.getArgument("player", String.class)))
                 )
         )
@@ -121,7 +128,9 @@ public class PlotHandler implements ISubcommandHandler {
     private void execClaimPlot(CommandContext<McmeCommandSender> context, Plot plot) {
         Player player = getPlayer(context);
         new ConditionalExecutor(player)
-                .addCondition(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(player),
+                .addCondition(plot.getThemedBuild().isClaimingAllowed(), "command.claim.error.notAllowed", plot.getThemedBuild().getName())
+                .addCondition(plot.getThemedBuild().getOwnedPlots(player.getUniqueId()).size()
+                                    <ThemedBuildConfig.getMaxOwnedPlotsPerTheme(player.getUniqueId()),
                         "command.claim.error.tooMany")
                 .execute(()->plot.claim(player.getUniqueId()),"command.claim.success");
         /*if(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(player)) {
@@ -167,8 +176,8 @@ public class PlotHandler implements ISubcommandHandler {
                     String exactHelperName = (helper!=null?Bukkit.getOfflinePlayer(helper).getName():"*unknown*");
                     new ConditionalExecutor(getPlayer(context))
                             .addPlayerCondition(helper)
-                            .addCondition(!plot.getHelper().contains(helper),"command.add.error.alreadyHelper", exactHelperName)
-                            .addCondition(plot.getThemedbuild().getBuildPlots(helper)<ThemedBuildManager.getMaxBuildPlotsPerTheme(helper),
+                            .addCondition(!plot.getHelpers().contains(helper),"command.add.error.alreadyHelper", exactHelperName)
+                            .addCondition(plot.getThemedBuild().getBuildPlots(helper).size()< ThemedBuildConfig.getMaxBuildPlotsPerTheme(helper),
                                             "command.add.error.toMany", exactHelperName)
                             .execute(()-> plot.addHelper(helper),"command.add.success", exactHelperName);
                     /*if(helper == null) {
@@ -312,7 +321,7 @@ public class PlotHandler implements ISubcommandHandler {
                     String exactName = (newOwner!=null?Bukkit.getOfflinePlayer(newOwner).getName():"*unknown*");
                     new ConditionalExecutor(getPlayer(context))
                             .addPlayerCondition(newOwner)
-                            .addCondition(plot.getThemedbuild().getOwnedPlots(newOwner)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(newOwner),
+                            .addCondition(plot.getThemedBuild().getOwnedPlots(newOwner).size()<ThemedBuildConfig.getMaxOwnedPlotsPerTheme(newOwner),
                                     "command.commit.error.tooMany", exactName)
                             .execute(()-> plot.commit(newOwner),"command.commit.success", exactName);
                     /*if(newOwner == null) {
@@ -349,7 +358,7 @@ public class PlotHandler implements ISubcommandHandler {
         new ConditionalExecutor(getPlayer(context))
                 .addPlotCondition(plot)
                 .addPlotClaimedCondition(Objects.requireNonNull(plot))
-                .addCondition(plot.getHelper().contains(getPlayer(context).getUniqueId()), "command.leave.errorNoHelper")
+                .addCondition(plot.getHelpers().contains(getPlayer(context).getUniqueId()), "command.leave.errorNoHelper")
                 .execute(()->plot.leave(getPlayer(context).getUniqueId()), "command.leave.success");
         /*if(plot!=null) {
             if(plot.isClaimed()) {

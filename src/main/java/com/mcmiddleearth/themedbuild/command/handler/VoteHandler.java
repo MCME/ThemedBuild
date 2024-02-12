@@ -4,12 +4,14 @@ import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
-import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
+import com.mcmiddleearth.themedbuild.ThemedBuildConfig;
 import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.entity.Player;
+
+import java.util.Objects;
 
 public class VoteHandler implements ISubcommandHandler {
 
@@ -35,7 +37,7 @@ public class VoteHandler implements ISubcommandHandler {
         Player player = getPlayer(context);
         new ConditionalExecutor(player)
                 .addPlotCondition(plot)
-                .addVotingCondition(plot.isVotingAllowed())
+                .addVotingCondition(Objects.requireNonNull(plot).getThemedBuild().isVotingAllowed())
                 .addCondition(!plot.hasVoted(player.getUniqueId()),"command.addVote.errorAlreadyVoted")
                 .execute(()->plot.addVote(player.getUniqueId(), getVoteFactor(context)), "command.addVote.success");
         /*if(plot!=null) {
@@ -60,9 +62,9 @@ public class VoteHandler implements ISubcommandHandler {
         Player player = getPlayer(context);
         new ConditionalExecutor(player)
                 .addPlotCondition(plot)
-                .addVotingCondition(plot.isVotingAllowed())
+                .addVotingCondition(Objects.requireNonNull(plot).getThemedBuild().isVotingAllowed())
                 .addCondition(!plot.hasDiamond(getPlayer(context).getUniqueId()),"command.addDiamond.errorAlreadyVoted")
-                .execute(()->plot.addVote(player.getUniqueId(), getVoteFactor(context)), "command.addDiamond.success");
+                .execute(()->plot.addDiamond(player.getUniqueId(), getVoteFactor(context)), "command.addDiamond.success");
         /*if(plot!=null) {
             if(plot.isVotingAllowed()) {
                 if(!plot.hasDiamond(getPlayer(context).getUniqueId())) {
@@ -85,7 +87,7 @@ public class VoteHandler implements ISubcommandHandler {
         Player player = getPlayer(context);
         new ConditionalExecutor(player)
                 .addPlotCondition(plot)
-                .addVotingCondition(plot.isVotingAllowed())
+                .addVotingCondition(Objects.requireNonNull(plot).getThemedBuild().isVotingAllowed())
                 .addCondition(plot.hasVoted(player.getUniqueId()),"command.removeVote.errorNotVoted")
                 .execute(()->plot.removeVote(player.getUniqueId()), "command.removeVote.success");
         /*if(plot!=null) {
@@ -107,7 +109,7 @@ public class VoteHandler implements ISubcommandHandler {
 
     private int getVoteFactor(CommandContext<McmeCommandSender> context) {
         if(hasAnyPermission(context.getSource(),Permissions.POWER_VOTER)) {
-            return ThemedBuildPlugin.getConfig().getInt("powerVoteFactor",2);
+            return ThemedBuildConfig.getPowerVoteFactor();
         } else {
             return 1;
         }

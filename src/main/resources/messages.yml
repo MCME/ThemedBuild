@@ -7,12 +7,12 @@ command:
     ambiguousPlayer: Player name %1% is ambiguous.
     noHelper: Player %1% is not in this plot team.
     noTheme: There is no Themed-build named %1%
+    noModel: Model %1% does not exist.
   help:
     help: See help about /theme subcommands
     header: Help for Themed-builds commands
   model:
     help: Manage models for Themed-builds plots.
-    errorNoModel: Model %1% does not exist.
     save:
       help: Save a plot model.
       success: Model saved as %1%.
@@ -50,9 +50,10 @@ command:
   claim:
     help: Claim a plot.
     success: You claimed this plot.
-      teleport: 'Welcome to your new plot. Please stick to the theme: %1%'
-    errorClaimed: 'This plot is already claimed. Please stick to the theme: %1%'
+      teleport: Welcome to your new plot of theme %1%
+    errorClaimed: This plot is already claimed.
     errorTooMany: You already claimed your maximum number of plots in this theme.
+    errorNotAllowed: Claming of plots is currently not allowed in theme %1%.
   unclaim:
     success: You unclaimed this plot.
     help: Unclaim and reset a plot.
@@ -85,20 +86,38 @@ command:
     help: Themed-builds commands.
   new:
     help: Create a new theme.
+    success: Created new theme %1% using plot model %2%.
+    errorAlreadyExists: A theme named %1% already exists.
+    errorNoModel: A plot model named %1% does not exists.
   building:
     help: Allow or deny building in plots of a theme.
+    errorAlreadyDenied: Building is already denied in theme %1%
+    errorAlreadyAllowed: Building is already allowed in theme %1%
+    success:
+      allow: You allowed people to build in plots of theme %1%
+      deny: You denied people to build in plots of theme %1%
   claiming:
     help: Allow or deny plot claiming in a theme.
+    errorAlreadyDenied: Claiming of plots is already denied in theme %1%
+    errorAlreadyAllowed: Building of plots is allowed in theme %1%
+    success:
+      allow: You allowed people to build in plots of theme %1%
+      deny: You denied people to build in plots of theme %1%
   winner:
     help: Select a winning plot of a theme.
+    success: You awarded rank %1% to this plot.
+    errorSameRank: This plot is alrady awarded rank %1%.
+    remove:
+      success: You removed this plot from theme winners.
+      errorNoWinner: This plot has not been awarded a winner rank.
   status:
     help: Display status (building and claiminig) of a theme.
   setURL:
     help: Link a URL with building instructions to a theme.
   toplot:
     help: Teleport to a plot.
-    success:
-    errorNoPlot:
+    success: Welcome to plot no. %1% of theme %2%.
+    errorNoPlot: Plot no. %1% of theme %2% does not exist.
   vote:
     help: Manage plot votes.
     add:
@@ -107,7 +126,8 @@ command:
       help: Give your diamond to his plot.
     remove:
       help: Remove your vote and diamond from this plot.
-
   warp:
     help: Warp to a theme.
+  reload:
+    success: Plugin configruation was reloaded.
 

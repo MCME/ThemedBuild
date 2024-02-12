@@ -7,10 +7,16 @@ import com.mcmiddleearth.command.sender.BukkitPlayer;
 import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
+import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
 import com.mcmiddleearth.themedbuild.command.argument.*;
-import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
+import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
+import com.mcmiddleearth.themedbuild.data.*;
 import com.mojang.brigadier.context.CommandContext;
+import org.bukkit.entity.Player;
 
+import java.util.Objects;
+
+import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
 import static com.mojang.brigadier.arguments.StringArgumentType.word;
 
 public class ThemeCommandHandler extends BukkitCommandHandler implements ICommandHandler {
@@ -18,20 +24,6 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
     public ThemeCommandHandler(String command) {
         super(command);
     }
-    /*Available subcommands:
-            §2/theme toplot§f -- teleports you to your plot in current theme
-      §2/theme warp§f -- teleports you to the current theme
-      §2/theme resetplot§f -- restores plot to original state
-      §2/theme unclaim§f -- unclaims a plot
-      §2/theme help [subcommand]§f -- view more informations about subcommand
-      §2/theme new <name>§f -- create new Themed Build
-      §2/theme set <name>§f -- start new chain of Themed Builds
-      §2/theme createmodel <name>§f -- create empty plot model
-      §2/theme modelpos <1|2>§f -- set point at feet coordinates
-      §2/theme deletemodel <name>§f -- delete plot model
-      §2/theme savemodel§f -- save current model
-      §2/theme listmodels§f -- list available models
-      §2/theme setURL <url>§f -- set the URL for the themedbuild*/
 
     @Override
     protected HelpfulLiteralBuilder createCommandTree(HelpfulLiteralBuilder helpfulLiteralBuilder) {
@@ -48,7 +40,7 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                         .withHelpText(Messages.get("command.new.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("model", new ExistingModelNameArgument())
-                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new AvailableThemedbuildNameArgument())
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", greedyString())
                                         .executes(context -> executeNewCommand(context, context.getArgument("theme",String.class),
                                                 context.getArgument("model",String.class)))
                                 )
@@ -58,11 +50,8 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                         .withHelpText(Messages.get("command.building.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
-                                .executes(context -> {
-                                    assert ThemedBuildManager.getCurrentThemedBuild() != null;
-                                    return executeSetBuildingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
-                                                                     context.getArgument("action", Boolean.class));
-                                })
+                                .executes(context -> executeSetBuildingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                                                 context.getArgument("action", Boolean.class)))
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                         .executes(context -> executeSetBuildingCommand(context,
                                                                     context.getArgument("theme",String.class),
@@ -74,7 +63,8 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                         .withHelpText(Messages.get("command.claiming.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
-                                .executes(context -> executeSetClaimingCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                .executes(context -> executeSetClaimingCommand(context,
+                                        Objects.requireNonNull(ThemedBuildManager.getCurrentThemedBuild()).getName(),
                                         context.getArgument("action", Boolean.class))
                                 )
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
@@ -88,11 +78,12 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                         .withHelpText(Messages.get("command.claiming.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
-                                .executes(context -> executeSetHelperCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName(),
+                                .executes(context -> executeSetHelpingCommand(context,
+                                        Objects.requireNonNull(ThemedBuildManager.getCurrentThemedBuild()).getName(),
                                         context.getArgument("action", Boolean.class))
                                 )
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
-                                        .executes(context -> executeSetHelperCommand(context,
+                                        .executes(context -> executeSetHelpingCommand(context,
                                                 context.getArgument("theme",String.class),
                                                 context.getArgument("action", Boolean.class)))
                                 )
@@ -130,7 +121,7 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                 )
                 .then(HelpfulLiteralBuilder.literal("info")
                         .withHelpText(Messages.get("command.info.help"))
-                        .requires(mcmeCommandSender -> hasAnyPermission(sender, Permissions.VIEWER))
+                        .requires(sender -> hasAnyPermission(sender, Permissions.VIEWER))
                         .executes(context -> executeInfoCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName()))
                         .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                 .executes(context -> executeInfoCommand(context, context.getArgument("theme",String.class)))
@@ -142,42 +133,121 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
         new WarpHandler().addCommandTree(helpfulLiteralBuilder);
         new PlotHandler().addCommandTree(helpfulLiteralBuilder);
         new ModelHandler().addCommandTree(helpfulLiteralBuilder);
+        new VoteHandler().addCommandTree(helpfulLiteralBuilder);
         return helpfulLiteralBuilder;
     }
 
     private int executeSetBuildingCommand(CommandContext<McmeCommandSender> context, String themeName, boolean allow) {
+        ThemedBuild themedBuild = ThemedBuildManager.getThemedBuild(themeName);
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addThemeCondition(themedBuild, themeName)
+                .addCondition(Objects.requireNonNull(themedBuild).isBuildingAllowed()!=allow,
+                              (allow?"command.building.ErrorAlreadyAllowed":"command.building.ErrorAlreadyDenied"),themeName)
+                .execute(()->themedBuild.setAllowBuilding(allow),
+                          (allow?"command.building.success.allow":"command.building.success.deny"),themeName);
         return 0;
     }
 
     private int executeSetClaimingCommand(CommandContext<McmeCommandSender> context, String themeName, boolean allow) {
+        ThemedBuild themedBuild = ThemedBuildManager.getThemedBuild(themeName);
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addThemeCondition(themedBuild, themeName)
+                .addCondition(Objects.requireNonNull(themedBuild).isClaimingAllowed()!=allow,
+                        (allow?"command.claiming.errorAlreadyAllowed":"command.claiming.errorAlreadyDenied"),themeName)
+                .execute(()->themedBuild.setAllowClaiming(allow),
+                        (allow?"command.claiming.success.allow":"command.claiming.success.deny"),themeName);
         return 0;
     }
 
-    private int executeWinnerCommand(CommandContext<McmeCommandSender> context, String themeName, int rank) {
+    private int executeSetHelpingCommand(CommandContext<McmeCommandSender> context, String themeName, boolean allow) {
+        ThemedBuild themedBuild = ThemedBuildManager.getThemedBuild(themeName);
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addThemeCondition(themedBuild, themeName)
+                .addCondition(Objects.requireNonNull(themedBuild).isHelpingAllowed()!=allow,
+                        (allow?"command.claiming.errorAlreadyAllowed":"command.helping.errorAlreadyDenied"),themeName)
+                .execute(()->themedBuild.setAllowHelping(allow),
+                        (allow?"command.claiming.success.allow":"command.helping.success.deny"),themeName);
         return 0;
     }
 
-    private int executeWinnerRemoveCommand(CommandContext<McmeCommandSender> context, String themeName, int rank) {
+    private int executeWinnerCommand(CommandContext<McmeCommandSender> context, int rank) {
+        Player player = getPlayer(context);
+        Plot plot = ThemedBuildManager.getPlot(player.getLocation());
+        new ConditionalExecutor(player)
+                .addPlotCondition(plot)
+                .addCondition(Objects.requireNonNull(plot).getThemedBuild().getRank(plot)!=rank,
+                              "command.winner.errorSameRank", ""+rank)
+                .execute(()-> plot.getThemedBuild().setWinner(rank),"command.winner.success");
+        return 0;
+    }
+
+    private int executeWinnerRemoveCommand(CommandContext<McmeCommandSender> context) {
+        Player player = getPlayer(context);
+        Plot plot = ThemedBuildManager.getPlot(player.getLocation());
+        new ConditionalExecutor(player)
+                .addPlotCondition(plot)
+                .addCondition(Objects.requireNonNull(plot).getThemedBuild().isWinner(plot),
+                              "command.winner.remove.errorNoWinner")
+                .execute(()-> plot.getThemedBuild().removeWinner(plot),"command.winner.remove.success");
         return 0;
     }
 
     private int executeBaseCommand(CommandContext<McmeCommandSender> context) {
+        //todo: ???
         return 0;
     }
 
     private int executeReloadCommand(CommandContext<McmeCommandSender> context) {
+        ThemedBuildPlugin.getPluginInstance().reload();
+        sendSuccess(context, "command.reload.success");
         return 0;
     }
 
-    private int executeNewCommand(CommandContext<McmeCommandSender> context, String themeName, String model) {
+    private int executeNewCommand(CommandContext<McmeCommandSender> context, String themeName, String modelName) {
+        Player player = getPlayer(context);
+        ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
+        new ConditionalExecutor(player)
+                .addCondition(theme==null, "command.new.errorAlreadyExists", themeName)
+                .addModelCondition(modelName)
+                .execute(()->ThemedBuildManager.createNewTheme(themeName, modelName), "command.new.success",themeName, modelName);
         return 0;
     }
 
     private int executeStatusCommand(CommandContext<McmeCommandSender> context, String themeName) {
+        Player player = getPlayer(context);
+        ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
+        new ConditionalExecutor(player)
+                .addThemeCondition(theme, themeName)
+                .execute(()-> {
+                    sendSuccess(context, "command.status.success", themeName);
+                    sendSuccess(context, "Claimed plots: "+ Objects.requireNonNull(theme).getClaimedPlots().size());
+                    sendSuccess(context, "Building: "+(theme.isBuildingAllowed()?"allowed":"denied"));
+                    sendSuccess(context, "Claiming: "+(theme.isClaimingAllowed()?"allowed":"denied"));
+                }, null);
         return 0;
     }
 
     private int executeSetUrlCommand(CommandContext<McmeCommandSender> context, String themeName, String url) {
+        Player player = getPlayer(context);
+        ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
+        new ConditionalExecutor(player)
+                .addThemeCondition(theme, themeName)
+                .execute(()-> Objects.requireNonNull(theme).setURL(url), "command.setURL.success");
+        return 0;
+    }
+
+    private int executeInfoCommand(CommandContext<McmeCommandSender> context, String themeName) {
+        Player player = getPlayer(context);
+        ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
+        new ConditionalExecutor(player)
+                .addThemeCondition(theme, themeName)
+                .execute(()-> {
+                    sendSuccess(context, "command.info.success", themeName);
+                    sendSuccess(context, "Instructions at: "+ Objects.requireNonNull(theme).getURL());
+                },null);
         return 0;
     }
 

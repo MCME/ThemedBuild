@@ -24,15 +24,11 @@ public class HelpHandler implements ISubcommandHandler {
         .then(HelpfulLiteralBuilder.literal("help")
                 .withHelpText(Messages.get("command.help.help"))
                 .executes(context -> executeHelpCommand(context,1))
-                .then(HelpfulRequiredArgumentBuilder.argument("page",new PageArgumentType(this::getSubcommands, MessageUtil.PAGE_LENGTH))
+                .then(HelpfulRequiredArgumentBuilder.argument("page",new PageArgumentType(HelpHandler::getSubcommands, MessageUtil.PAGE_LENGTH))
                         .executes(context -> executeHelpCommand(context, context.getArgument("page", Integer.class)))
                 )
                 .then(HelpfulRequiredArgumentBuilder.argument("subcommand", new SubcommandArgument())
-                        .executes(context -> executeDetailHelpCommand(context, context.getArgument("subcommand",String.class),0))
-                        .then(HelpfulRequiredArgumentBuilder.argument("page", new PageArgumentType(this::getSubcommands, MessageUtil.PAGE_LENGTH))
-                                .executes(context ->executeDetailHelpCommand(context, context.getArgument("subcommand",String.class),
-                                                                                      context.getArgument("page",Integer.class)))
-                        )
+                        .executes(context -> executeDetailHelpCommand(context, context.getArgument("subcommand",String.class)))
                 )
         );
     }
@@ -49,14 +45,14 @@ public class HelpHandler implements ISubcommandHandler {
         return 0;
     }
 
-    private int executeDetailHelpCommand(CommandContext<McmeCommandSender> context,  String subcommand, int page) {
+    private int executeDetailHelpCommand(CommandContext<McmeCommandSender> context,  String subcommand) {
         ThemedBuildPlugin.messageUtil.fancyMessage().addClickable(getBaseCommand(context)+subcommand+": "+
                         ((HelpfulNode)context.getRootNode().getChild(subcommand)).getHelpText(),
                 getBaseCommand(context)+subcommand).send(getPlayer(context));
         return 0;
     }
 
-    private List<String> getSubcommands(CommandContext<McmeCommandSender> context) {
+    public static <S> List<String> getSubcommands(CommandContext<S> context) {
         return context.getRootNode().getChildren().stream().map(CommandNode::getName).collect(Collectors.toList());
     }
 }
