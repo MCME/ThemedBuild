@@ -1,5 +1,6 @@
 package com.mcmiddleearth.themedbuild.command.handler;
 
+import com.google.common.base.Joiner;
 import com.mcmiddleearth.command.builder.HelpfulLiteralBuilder;
 import com.mcmiddleearth.command.builder.HelpfulRequiredArgumentBuilder;
 import com.mcmiddleearth.command.handler.BukkitCommandHandler;
@@ -8,9 +9,14 @@ import com.mcmiddleearth.command.sender.McmeCommandSender;
 import com.mcmiddleearth.themedbuild.Messages;
 import com.mcmiddleearth.themedbuild.Permissions;
 import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
-import com.mcmiddleearth.themedbuild.command.argument.*;
+import com.mcmiddleearth.themedbuild.command.argument.AllowDenyArgument;
+import com.mcmiddleearth.themedbuild.command.argument.ExistingModelNameArgument;
+import com.mcmiddleearth.themedbuild.command.argument.ExistingThemeNameArgument;
+import com.mcmiddleearth.themedbuild.command.argument.PositiveNumberArgument;
 import com.mcmiddleearth.themedbuild.command.handler.executor.ConditionalExecutor;
-import com.mcmiddleearth.themedbuild.data.*;
+import com.mcmiddleearth.themedbuild.data.Plot;
+import com.mcmiddleearth.themedbuild.data.ThemedBuild;
+import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import com.mojang.brigadier.context.CommandContext;
 import org.bukkit.entity.Player;
 
@@ -46,6 +52,12 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                                 )
                         )
                 )
+                .then(HelpfulLiteralBuilder.literal("delete")
+                        .withHelpText(Messages.get("command.delete.help"))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                .executes(context -> executeDeleteCommand(context, context.getArgument("theme",String.class))))
+                )
                 .then(HelpfulLiteralBuilder.literal("building")
                         .withHelpText(Messages.get("command.building.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
@@ -75,7 +87,7 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                         )
                 )
                 .then(HelpfulLiteralBuilder.literal("helper")
-                        .withHelpText(Messages.get("command.claiming.help"))
+                        .withHelpText(Messages.get("command.helping.help"))
                         .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
                         .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
                                 .executes(context -> executeSetHelpingCommand(context,
@@ -84,6 +96,21 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                                 )
                                 .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                         .executes(context -> executeSetHelpingCommand(context,
+                                                context.getArgument("theme",String.class),
+                                                context.getArgument("action", Boolean.class)))
+                                )
+                        )
+                )
+                .then(HelpfulLiteralBuilder.literal("voting")
+                        .withHelpText(Messages.get("command.voting.help"))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("action", new AllowDenyArgument())
+                                .executes(context -> executeSetVotingCommand(context,
+                                        Objects.requireNonNull(ThemedBuildManager.getCurrentThemedBuild()).getName(),
+                                        context.getArgument("action", Boolean.class))
+                                )
+                                .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
+                                        .executes(context -> executeSetVotingCommand(context,
                                                 context.getArgument("theme",String.class),
                                                 context.getArgument("action", Boolean.class)))
                                 )
@@ -119,13 +146,19 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                                 )
                         )
                 )
+                .then(HelpfulLiteralBuilder.literal("setRP")
+                        .withHelpText(Messages.get("command.setRP.help"))
+                        .requires(sender -> hasAnyPermission(sender,Permissions.MANAGER))
+                        .then(HelpfulRequiredArgumentBuilder.argument("rpList", greedyString())
+                                .executes(context -> executeSetRP(context, context.getArgument("rpList",String.class)))
+                        )
+                )
                 .then(HelpfulLiteralBuilder.literal("info")
                         .withHelpText(Messages.get("command.info.help"))
                         .requires(sender -> hasAnyPermission(sender, Permissions.VIEWER))
                         .executes(context -> executeInfoCommand(context, ThemedBuildManager.getCurrentThemedBuild().getName()))
                         .then(HelpfulRequiredArgumentBuilder.argument("theme", new ExistingThemeNameArgument())
                                 .executes(context -> executeInfoCommand(context, context.getArgument("theme",String.class)))
-
                         )
                 );
         new HelpHandler().addCommandTree(helpfulLiteralBuilder);
@@ -167,9 +200,21 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
         new ConditionalExecutor(player)
                 .addThemeCondition(themedBuild, themeName)
                 .addCondition(Objects.requireNonNull(themedBuild).isHelpingAllowed()!=allow,
-                        (allow?"command.claiming.errorAlreadyAllowed":"command.helping.errorAlreadyDenied"),themeName)
+                        (allow?"command.helping.errorAlreadyAllowed":"command.helping.errorAlreadyDenied"),themeName)
                 .execute(()->themedBuild.setAllowHelping(allow),
-                        (allow?"command.claiming.success.allow":"command.helping.success.deny"),themeName);
+                        (allow?"command.helping.success.allow":"command.helping.success.deny"),themeName);
+        return 0;
+    }
+
+    private int executeSetVotingCommand(CommandContext<McmeCommandSender> context, String themeName, Boolean allow) {
+        ThemedBuild themedBuild = ThemedBuildManager.getThemedBuild(themeName);
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addThemeCondition(themedBuild, themeName)
+                .addCondition(Objects.requireNonNull(themedBuild).isVotingAllowed()!=allow,
+                        (allow?"command.voting.errorAlreadyAllowed":"command.voting.errorAlreadyDenied"),themeName)
+                .execute(()->themedBuild.setAllowVoting(allow),
+                        (allow?"command.voting.success.allow":"command.voting.success.deny"),themeName);
         return 0;
     }
 
@@ -178,9 +223,9 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
         Plot plot = ThemedBuildManager.getPlot(player.getLocation());
         new ConditionalExecutor(player)
                 .addPlotCondition(plot)
-                .addCondition(Objects.requireNonNull(plot).getThemedBuild().getRank(plot)!=rank,
+                .addCondition(Objects.requireNonNull(plot).getRank()!=rank,
                               "command.winner.errorSameRank", ""+rank)
-                .execute(()-> plot.getThemedBuild().setWinner(rank),"command.winner.success");
+                .execute(()-> plot.getThemedBuild().setWinner(plot, rank),"command.winner.success");
         return 0;
     }
 
@@ -189,7 +234,7 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
         Plot plot = ThemedBuildManager.getPlot(player.getLocation());
         new ConditionalExecutor(player)
                 .addPlotCondition(plot)
-                .addCondition(Objects.requireNonNull(plot).getThemedBuild().isWinner(plot),
+                .addCondition(Objects.requireNonNull(plot).isWinner(),
                               "command.winner.remove.errorNoWinner")
                 .execute(()-> plot.getThemedBuild().removeWinner(plot),"command.winner.remove.success");
         return 0;
@@ -216,6 +261,16 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
         return 0;
     }
 
+    private int executeDeleteCommand(CommandContext<McmeCommandSender> context, String themeName) {
+        ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
+        Player player = getPlayer(context);
+        new ConditionalExecutor(player)
+                .addCondition(theme==null, "command.delete.error.noTheme", themeName)
+                .addCondition(theme!=ThemedBuildManager.getCurrentThemedBuild(), "command.delete.error.notCurrent", themeName)
+                .execute(ThemedBuildManager::deleteCurrentTheme, "command.delete,success");
+        return 0;
+    }
+
     private int executeStatusCommand(CommandContext<McmeCommandSender> context, String themeName) {
         Player player = getPlayer(context);
         ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
@@ -224,18 +279,28 @@ public class ThemeCommandHandler extends BukkitCommandHandler implements IComman
                 .execute(()-> {
                     sendSuccess(context, "command.status.success", themeName);
                     sendSuccess(context, "Claimed plots: "+ Objects.requireNonNull(theme).getClaimedPlots().size());
+                    sendSuccess(context, "Resource packs: "+ Joiner.on(", ").join(theme.getResourcePacks()));
                     sendSuccess(context, "Building: "+(theme.isBuildingAllowed()?"allowed":"denied"));
                     sendSuccess(context, "Claiming: "+(theme.isClaimingAllowed()?"allowed":"denied"));
+                    sendSuccess(context, "Helping: "+(theme.isHelpingAllowed()?"allowed":"denied"));
+                    sendSuccess(context, "Voting: "+(theme.isVotingAllowed()?"allowed":"denied"));
                 }, null);
         return 0;
     }
 
     private int executeSetUrlCommand(CommandContext<McmeCommandSender> context, String themeName, String url) {
-        Player player = getPlayer(context);
         ThemedBuild theme = ThemedBuildManager.getThemedBuild(themeName);
-        new ConditionalExecutor(player)
+        new ConditionalExecutor(getPlayer(context))
                 .addThemeCondition(theme, themeName)
                 .execute(()-> Objects.requireNonNull(theme).setURL(url), "command.setURL.success");
+        return 0;
+    }
+
+    private int executeSetRP(CommandContext<McmeCommandSender> context, String rpList) {
+        String[] resourcePacks = rpList.split(" ");
+        new ConditionalExecutor(getPlayer(context))
+                .execute(()-> ThemedBuildManager.getCurrentThemedBuild().setRP(resourcePacks),"command.setRP.success", rpList);
+
         return 0;
     }
 

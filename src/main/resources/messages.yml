@@ -6,7 +6,8 @@ command:
     noPlayer: Player %1% not found. For offline players exact name is required.
     ambiguousPlayer: Player name %1% is ambiguous.
     noHelper: Player %1% is not in this plot team.
-    noTheme: There is no Themed-build named %1%
+    noTheme: There is no Themed-build named '%1%'.
+    ambiguousTheme: Theme name '%1%' is ambiguous.
     noModel: Model %1% does not exist.
   help:
     help: See help about /theme subcommands
@@ -88,21 +89,40 @@ command:
     help: Create a new theme.
     success: Created new theme %1% using plot model %2%.
     errorAlreadyExists: A theme named %1% already exists.
-    errorNoModel: A plot model named %1% does not exists.
+  delete:
+    help: Delete current theme.
+    success: You deleted the current theme.
+    error:
+      noTheme: For safety reasons you need to specify the current theme name.
+      notCurrent: You can only delete the current theme.
   building:
     help: Allow or deny building in plots of a theme.
-    errorAlreadyDenied: Building is already denied in theme %1%
-    errorAlreadyAllowed: Building is already allowed in theme %1%
+    errorAlreadyDenied: Building is already denied in theme '%1%'
+    errorAlreadyAllowed: Building is already allowed in theme '%1%'
     success:
-      allow: You allowed people to build in plots of theme %1%
-      deny: You denied people to build in plots of theme %1%
+      allow: You allowed people to build in plots of theme '%1%'
+      deny: You denied people to build in plots of theme '%1%'
   claiming:
     help: Allow or deny plot claiming in a theme.
-    errorAlreadyDenied: Claiming of plots is already denied in theme %1%
-    errorAlreadyAllowed: Building of plots is allowed in theme %1%
+    errorAlreadyDenied: Claiming of plots is already denied in theme '%1%'
+    errorAlreadyAllowed: Building of plots is already allowed in theme '%1%'
     success:
-      allow: You allowed people to build in plots of theme %1%
-      deny: You denied people to build in plots of theme %1%
+      allow: You allowed people to claim plots of theme '%1%'
+      deny: You denied people to claim in plots of theme '%1%'
+  helping:
+    help: Allow or deny plot teams in a theme.
+    errorAlreadyDenied: Plot teams are already denied in theme '%1%'
+    errorAlreadyAllowed: Plot teams are already allowed in theme '%1%'
+    success:
+      allow: You allowed people to help in plots of theme '%1%'
+      deny: You denied people to help in plots of theme '%1%'
+  voting:
+    help: Allow or deny plot voting in a theme.
+    errorAlreadyDenied: Voting on plots is already denied in theme '%1%'
+    errorAlreadyAllowed: Voting on plots is already allowed in theme '%1%'
+    success:
+      allow: You allowed people to vote on plots of theme '%1%'
+      deny: You denied people to vote on plots of theme '%1%'
   winner:
     help: Select a winning plot of a theme.
     success: You awarded rank %1% to this plot.
@@ -114,6 +134,9 @@ command:
     help: Display status (building and claiminig) of a theme.
   setURL:
     help: Link a URL with building instructions to a theme.
+  setRP:
+    help: Set resource packs for current theme.
+    success: You set resource packs of current theme to %1%.
   toplot:
     help: Teleport to a plot.
     success: Welcome to plot no. %1% of theme %2%.

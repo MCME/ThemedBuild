@@ -17,13 +17,9 @@ public class Plot  implements IStoragePlot {
 
     private Location lowerCorner, upperCorner;
 
-    private boolean limitedHeight;
-
-    private boolean allowWeOwner, allowWeHelper;
+    private int rank;
 
     private UUID owner;
-
-    private boolean allowHelper;
 
     private List<UUID> helper;
 
@@ -132,6 +128,18 @@ public class Plot  implements IStoragePlot {
 
     public void removeVote(UUID uniqueId) {
 
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
+    public boolean isWinner() {
+        return rank!=0;
     }
 
     public enum SignCorner {

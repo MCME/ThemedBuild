@@ -3,43 +3,128 @@ package com.mcmiddleearth.themedbuild.data;
 import org.bukkit.Location;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class ThemedBuild {
 
     private String name;
 
-    private String rpName;
+    private String[] resourcePacks;
 
-    private Location location;
+    private String url;
 
-    private boolean allowPlotClaiming, allowBuilding, allowHelping, allowVoting;
+    private int orderingPeriod;
 
-    private List<Plot> upperRow, lowerRow, upperWinnerRow, lowerWinnerRow;
+    private boolean limitedHeight;
+
+    private boolean allowPlotClaiming, allowBuilding, allowHelping, allowVoting, allowWeOwner, allowWeHelper;
+
+    private Location warpLocation, lowerCorner, upperCorner;
+
+    private List<Plot> generalPlots, winnerPlots, unclaimedPlots;
 
     private boolean useSingleWinnerRow;
 
     private PlotModel plotModel;
 
+    public Plot getUnclaimedPlot() {
+        if(unclaimedPlots.size()==0) {
+            //todo: create new plot
+        }
+        return unclaimedPlots.get(0);
+    }
+
+    public void setWinner(Plot plot, int rank) {
+        plot.setRank(rank);
+        //todo: move plot to winner side
+    }
+
+    public void removeWinner(Plot plot) {
+        plot.setRank(0);
+        //todo: move plot to general side
+    }
+
+    public Plot getPlot(UUID sender, int number) {
+        //todo: decide about this method what to do.
+        return null;
+    }
+
+    public Plot getPlot(Location location) {
+        //todo: find plot at location
+    }
+
+    public Collection<Plot> getBuildPlots(UUID helper) {
+        return getClaimedPlots().stream().filter(plot->plot.getHelpers().contains(helper)).collect(Collectors.toList());
+    }
+
+    public Collection<Plot> getOwnedPlots(UUID playerId) {
+        return getClaimedPlots().stream().filter(plot->plot.getOwner().equals(playerId)).collect(Collectors.toList());
+    }
+
+    public List<Plot> getAllPlots() {
+        List<Plot> result = new LinkedList<>(generalPlots);
+        result.addAll(winnerPlots);
+        return result;
+    }
+
+    public Collection<Plot> getClaimedPlots() {
+        List<Plot> result = getAllPlots();
+        result.removeAll(unclaimedPlots);
+        return result;
+    }
+
+    public void claim(Plot plot, UUID player) {
+        if(!plot.isClaimed()) {
+            plot.claim(player);
+            unclaimedPlots.remove(plot);
+        }
+    }
+
+    public void unclaim(Plot plot) {
+        if(plot.isClaimed()) {
+            plot.unclaim();
+            unclaimedPlots.add(plot);
+        }
+    }
+
     public String getName() {
         return name;
     }
 
-    public Plot getPlot(UUID sender, int number) {
-        return null;
+    public void setRP(String[] resourcePacks) {
+        this.resourcePacks = resourcePacks;
     }
 
-    public Collection<Plot> getOwnedPlots(UUID playerId) {
-        return null;
+    public String[] getResourcePacks() {
+        return resourcePacks;
     }
 
-    public Plot getUnclaimedPlot() {
-        return null;
+    public void setURL(String url) {
+        this.url = url;
     }
 
-    public Collection<Plot> getBuildPlots(UUID helper) {
-        return null;
+    public String getURL() {
+        return url;
+    }
+
+    public Location getWarpLocation() {
+        return warpLocation.clone();
+    }
+
+    public Location getLowerCorner() {
+        return lowerCorner.clone();
+    }
+
+    public Location getUpperCorner() {
+        return upperCorner.clone();
+    }
+
+    public boolean isInside(Location location) {
+        return lowerCorner.getX()<location.getX() && lowerCorner.getZ()<location.getZ()
+            && upperCorner.getX()>location.getX() && upperCorner.getZ()>location.getZ();
     }
 
     public boolean isClaimingAllowed() {
@@ -70,36 +155,8 @@ public class ThemedBuild {
         allowHelping = allow;
     }
 
-    public int getRank(Plot plot) {
-        return 0;
-    }
-
-    public void setWinner(int rank) {
-
-    }
-
-    public boolean isWinner(Plot plot) {
-        return false;
-    }
-
-    public void removeWinner(Plot plot) {
-
-    }
-
-    public void setURL(String url) {
-
-    }
-
-    public String getURL() {
-        return null;
-    }
-
-    public Collection<Plot> getClaimedPlots() {
-        return null;
-    }
-
-    public Location getWarpLocation() {
-        return null;
+    public void setAllowVoting(Boolean allow) {
+        allowVoting = allow;
     }
 
 }

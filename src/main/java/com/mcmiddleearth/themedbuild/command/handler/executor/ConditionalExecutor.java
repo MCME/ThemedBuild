@@ -5,6 +5,7 @@ import com.mcmiddleearth.themedbuild.ThemedBuildPlugin;
 import com.mcmiddleearth.themedbuild.data.Plot;
 import com.mcmiddleearth.themedbuild.data.PlotModelManager;
 import com.mcmiddleearth.themedbuild.data.ThemedBuild;
+import com.mcmiddleearth.themedbuild.data.ThemedBuildManager;
 import org.bukkit.entity.Player;
 
 import java.util.LinkedList;
@@ -59,6 +60,7 @@ public class ConditionalExecutor {
     }
 
     public ConditionalExecutor addThemeCondition(ThemedBuild theme, String themeName) {
+        conditions.add(new Condition(!ThemedBuildManager.isAmbiguous(themeName), "command.error.ambiguousTheme", themeName));
         conditions.add(new Condition(theme!=null,"command.error.noTheme", themeName));
         return this;
     }

@@ -6,8 +6,11 @@ import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Set;
 
 public class PlotModelManager {
+
+    private static Set<PlotModel> models;
 
     public static boolean existsModel(String modelName) {
         return false;

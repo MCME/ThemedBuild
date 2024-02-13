@@ -132,7 +132,7 @@ public class PlotHandler implements ISubcommandHandler {
                 .addCondition(plot.getThemedBuild().getOwnedPlots(player.getUniqueId()).size()
                                     <ThemedBuildConfig.getMaxOwnedPlotsPerTheme(player.getUniqueId()),
                         "command.claim.error.tooMany")
-                .execute(()->plot.claim(player.getUniqueId()),"command.claim.success");
+                .execute(()->plot.getThemedBuild().claim(plot, player.getUniqueId()),"command.claim.success");
         /*if(plot.getThemedbuild().getOwnedPlots(player)<ThemedBuildManager.getMaxOwnedPlotsPerTheme(player)) {
             plot.claim(player.getUniqueId());
             sendSuccess(context, "command.claim.success");
@@ -147,7 +147,7 @@ public class PlotHandler implements ISubcommandHandler {
                 .addPlotCondition(plot)
                 .addPlotClaimedCondition(Objects.requireNonNull(plot))
                 .addPlotOwnedCondition(plot, getPlayer(context).getUniqueId())
-                .execute(plot::unclaim, "command.unclaim.success");
+                .execute(()-> plot.getThemedBuild().unclaim(plot), "command.unclaim.success");
         /*if(plot!=null) {
             if(plot.isClaimed()) {
                 if(plot.getOwner().equals(getPlayer(context).getUniqueId())) {
